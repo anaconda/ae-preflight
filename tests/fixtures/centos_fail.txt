@@ -1,0 +1,152 @@
+=========================================================
+                SYSTEM PROFILE RESULTS                   
+=========================================================
+
+OS Information
+Name:     Centos
+Version:  7.5
+Based On: rhel
+
+---------------------------------------------------------
+
+Compatability
+Supported OS:      PASS
+Supported Version: FAIL
+
+---------------------------------------------------------
+
+Memory
+Minimum: 16.0
+Actual:  14.88
+Memory:  FAIL
+
+---------------------------------------------------------
+
+CPU Cores
+Minimum:  8
+Actual:   4
+CPU Core: FAIL
+
+---------------------------------------------------------
+
+Mounts
+Mount Point:  /
+Recommended:  0.0 GB
+Total:        19.7 GB
+Free:         19.13 GB
+File System:  xfs
+Ftype:        0
+Mount Result: WARN
+
+Mount Point:  /tmp
+Recommended:  30.0 GB
+Total:        19.7 GB
+Free:         19.13 GB
+File System:  ext4
+Mount Result: WARN
+
+Mount Point:  /opt/anaconda
+Recommended:  100.0 GB
+Total:        99.7 GB
+Free:         98.13 GB
+File System:  ext4
+Mount Result: WARN
+
+Mount Point:  /var
+Recommended:  100.0 GB
+Total:        99.7 GB
+Free:         98.13 GB
+File System:  ext4
+Mount Result: WARN
+
+Note: The free space may have fallen below specific size requirements due to reserve space and/or small files placed on the mount after formatting. Confirm that the size is close to the requested size before proceeding.
+
+Note: XFS file system should be formatted with the option ftype=1 in order to support the overlay driver  for docker. In order to fix the issue the file system will need to be recreated and can be done using the following example:
+mkfs.xfs -n ftype=1 /path/to/your/device
+
+---------------------------------------------------------
+
+Selinux Status
+Current Status: Disabled
+Config Setting: Enforcing
+Selinux Result: FAIL
+
+---------------------------------------------------------
+
+/etc/resolv.conf Check
+Search Domains: 4
+Added Option: timeout:2
+Added Option: rotate
+WARNING: rotate option has been known to create issues on install and is recommended to comment this out
+
+Search Domain Result: FAIL
+Options Result: WARN
+
+---------------------------------------------------------
+
+Port Check
+Note: This test will check all interfaces for open ports and each interface may not apply to the installation
+
+Interface eth0:
+Port: 80 - Open
+Port: 443 - Closed
+Port: 32009 - Closed
+Port: 61009 - Closed
+Port: 65535 - Closed
+
+eth0 Result: WARN
+
+---------------------------------------------------------
+
+Agent Checks
+Running: puppet-agent
+WARNING: These agents have been known to cause issues with the system as it could block traffic, or change settings that are needed by Anaconda Enterprise to function properly
+
+Agent Result: WARN
+
+---------------------------------------------------------
+
+Module Checks
+Enabled:
+overlay
+
+Missing:
+iptable_filter
+br_netfilter
+iptable_nat
+ebtables
+
+HOW TO
+To enable a module you can do the following as root:
+modprobe MODULE_NAME
+
+To persist through a reboot do the following as root:
+echo -e "MODULE_NAME" > /etc/modules-load.d/MODULE_NAME.conf
+
+Module Result: FAIL
+
+---------------------------------------------------------
+
+Sysctl Settings
+Enabled:
+net.ipv4.ip_forward
+
+Disabled:
+net.bridge.bridge-nf-call-ip6tables
+net.bridge.bridge-nf-call-iptables
+fs.may_detach_mounts
+
+Sysctl Result: FAIL
+
+HOW TO
+To enable a setting you can do the following as root:
+sysctl -w SYSCTL_SETTING=1
+
+To persist through a reboot do the following as root:
+echo -e "SYSCTL_SETTING = 1" >> /etc/sysctl.d/10-SYSCTL_SETTING.conf"
+
+=========================================================
+
+Overall Result: FAIL
+
+=========================================================

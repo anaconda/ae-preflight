@@ -1,0 +1,108 @@
+=========================================================
+                SYSTEM PROFILE RESULTS                   
+=========================================================
+
+OS Information
+Name:     Ec2
+Version:  16.04
+Based On: debian
+
+---------------------------------------------------------
+
+Compatability
+Supported OS:      PASS
+Supported Version: PASS
+
+---------------------------------------------------------
+
+Memory
+Minimum: 16.0
+Actual:  251.88
+Memory:  PASS
+
+---------------------------------------------------------
+
+CPU Cores
+Minimum:  8
+Actual:   64
+CPU Core: PASS
+
+---------------------------------------------------------
+
+Mounts
+Mount Point:  /
+Recommended:  130.0 GB
+Total:        499.7 GB
+Free:         498.13 GB
+File System:  xfs
+Ftype:        1
+Mount Result: PASS
+
+Mount Point:  /tmp
+Recommended:  30.0 GB
+Total:        39.7 GB
+Free:         39.13 GB
+File System:  ext4
+Mount Result: PASS
+
+---------------------------------------------------------
+
+Selinux Result: SKIPPED
+
+---------------------------------------------------------
+
+/etc/resolv.conf Check
+Search Domains: 2
+
+Search Domain Result: PASS
+Options Result: PASS
+
+---------------------------------------------------------
+
+Port Check
+Note: This test will check all interfaces for open ports and each interface may not apply to the installation
+
+Interface eth0:
+Port: 80 - Open
+Port: 443 - Open
+Port: 32009 - Open
+Port: 61009 - Open
+Port: 65535 - Open
+
+eth0 Result: PASS
+
+---------------------------------------------------------
+
+Agent Checks
+No running agents found
+
+Agent Result: PASS
+
+---------------------------------------------------------
+
+Module Checks
+Enabled:
+iptable_filter
+br_netfilter
+iptable_nat
+ebtables
+overlay
+
+Module Result: PASS
+
+---------------------------------------------------------
+
+Sysctl Settings
+Enabled:
+net.bridge.bridge-nf-call-iptables
+net.bridge.bridge-nf-call-ip6tables
+fs.may_detach_mounts
+net.ipv4.ip_forward
+
+Sysctl Result: PASS
+
+=========================================================
+
+Overall Result: PASS
+
+=========================================================
