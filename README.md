@@ -1,4 +1,4 @@
-[![Travis Status](https://travis-ci.org/oldarmyc/ae_preflight.svg?branch=master)](https://travis-ci.org/oldarmyc/ae_preflight.svg?branch=master)
+[![Travis Status](https://travis-ci.org/Anaconda-Platform/ae-preflight.svg?branch=master)](https://travis-ci.org/Anaconda-Platform/ae-preflight.svg?branch=master)
 
 Anaconda Enterprise Preflight Checks
 ======
@@ -13,7 +13,7 @@ python setup.py install
 ```
 
 #### Running
-TO run the profiler from the command line enter in the following:
+To run the profiler from the command line enter in the following:
 ```sh
 ae-profile
 ```
