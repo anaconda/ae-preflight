@@ -204,14 +204,17 @@ def sysctl(test_pass=True):
                 'fs.may_detach_mounts',
                 'net.ipv4.ip_forward'
             ],
-            'disabled': []
+            'disabled': [],
+            'skipped': []
         }
 
     return {
         'enabled': ['net.ipv4.ip_forward'],
         'disabled': [
             'net.bridge.bridge-nf-call-ip6tables',
-            'net.bridge.bridge-nf-call-iptables',
+            'net.bridge.bridge-nf-call-iptables'
+        ],
+        'skipped': [
             'fs.may_detach_mounts'
         ]
     }
