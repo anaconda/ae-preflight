@@ -577,13 +577,43 @@ class TestSystemProfile(TestCase):
                 'net.bridge.bridge-nf-call-ip6tables',
                 'net.bridge.bridge-nf-call-iptables',
                 'fs.may_detach_mounts'
-            ]
+            ],
+            'skipped': []
         }
         mock_response = mock.Mock()
         mock_response.side_effect = [
+            command_returns.all_sysctl_return(),
             b'net.bridge.bridge-nf-call-ip6tables = 0',
             b'net.bridge.bridge-nf-call-iptables = 0',
             b'',
+            b'net.ipv4.ip_forward = 1'
+        ]
+        with mock.patch(
+            'system_profile.profile.execute_command',
+            side_effect=mock_response
+        ):
+            returns = profile.check_sysctl(True)
+
+        self.assertEquals(
+            expected_output,
+            returns,
+            'Returned values did not match expected output'
+        )
+
+    def test_sysctl_settings_skipped(self):
+        expected_output = {
+            'enabled': ['net.ipv4.ip_forward'],
+            'disabled': [
+                'net.bridge.bridge-nf-call-ip6tables',
+                'net.bridge.bridge-nf-call-iptables'
+            ],
+            'skipped': ['fs.may_detach_mounts']
+        }
+        mock_response = mock.Mock()
+        mock_response.side_effect = [
+            command_returns.all_sysctl_return(skipped=True),
+            b'net.bridge.bridge-nf-call-ip6tables = 0',
+            b'net.bridge.bridge-nf-call-iptables = 0',
             b'net.ipv4.ip_forward = 1'
         ]
         with mock.patch(

@@ -140,6 +140,21 @@ def lsmod_return():
     ).encode('utf-8')
 
 
+def all_sysctl_return(skipped=False):
+    if skipped:
+        return (
+            'vm.overcommit_memory = 0\nnet.bridge.bridge-nf-call-ip6tables = 0'
+            '\nnet.bridge.bridge-nf-call-iptables = 0'
+            '\nnet.ipv4.ip_forward = 1\n'
+        ).encode('utf-8')
+    else:
+        return (
+            'vm.overcommit_memory = 0\nnet.bridge.bridge-nf-call-ip6tables = 0'
+            '\nnet.bridge.bridge-nf-call-iptables = 0'
+            '\nfs.may_detach_mounts = 1\nnet.ipv4.ip_forward = 1\n'
+        ).encode('utf-8')
+
+
 def get_pid(pid, name):
     class PidInfoTest():
         def __init__(self, pid, name):

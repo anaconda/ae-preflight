@@ -452,24 +452,37 @@ def suse_infinity_check(system_file, verbose):
 def check_sysctl(verbose):
     enabled = []
     disabled = []
+    skipped = []
     if verbose:
         print('Checking sysctl settings on system')
 
+    all_sysctl_settings = execute_command(
+        ['sysctl', '-a'],
+        verbose
+    ).decode('utf-8')
+
     for setting in DEFAULT_SYSCTL:
-        temp_result = execute_command(
-            ['sysctl', setting],
-            verbose
-        ).decode('utf-8')
-        if temp_result:
-            result = temp_result.split('=')[1].strip()
-            if str(result) == '1':
-                enabled.append(setting)
+        if re.search(setting, all_sysctl_settings):
+            temp_result = execute_command(
+                ['sysctl', setting],
+                verbose
+            ).decode('utf-8')
+            if temp_result:
+                result = temp_result.split('=')[1].strip()
+                if str(result) == '1':
+                    enabled.append(setting)
+                else:
+                    disabled.append(setting)
             else:
                 disabled.append(setting)
         else:
-            disabled.append(setting)
+            skipped.append(setting)
 
-    sysctl_modules = {'enabled': enabled, 'disabled': disabled}
+    sysctl_modules = {
+        'enabled': enabled,
+        'disabled': disabled,
+        'skipped': skipped
+    }
     return sysctl_modules
 
 
@@ -772,6 +785,11 @@ def process_results(system_info):
             sysctl_result = 'FAIL'
             f.write('\nDisabled:\n')
             for setting in sysctl.get('disabled'):
+                f.write('{0}\n'.format(setting))
+
+        if len(sysctl.get('skipped', [])) > 0:
+            f.write('\nSkipped:\n')
+            for setting in sysctl.get('skipped'):
                 f.write('{0}\n'.format(setting))
 
         f.write('\nSysctl Result: {0}\n\n'.format(sysctl_result))
