@@ -13,7 +13,7 @@ import re
 
 OS_VALUES = {
     'rhel': {
-        'versions': ['7.2', '7.3', '7.4', '7.5'],
+        'versions': ['7.2', '7.3', '7.4', '7.5', '7.6'],
     },
     'debian': {
         'versions': ['16.04'],
@@ -59,6 +59,7 @@ FILE_TYPES = ['xfs', 'ext4']
 RUNNING_AGENTS = [
     'salt',
     'puppet',
+    'cylancesvc',
     'sisidsdaemon',
     'sisipsdaemon',
     'sisipsutildaemon'
@@ -247,7 +248,7 @@ def mounts_check(verbose):
         if '/tmp' in mountpoint:
             mounts[mountpoint]['recommended'] = 30.0
         elif '/var' in mountpoint:
-            mounts[mountpoint]['recommended'] = 100.0
+            mounts[mountpoint]['recommended'] = 200.0
         elif '/opt' in mountpoint:
             mounts[mountpoint]['recommended'] = 100.0
 
@@ -260,13 +261,13 @@ def mounts_check(verbose):
                 mounts[mountpoint]['ftype'] = 'UNK'
 
     # Update root requirement
-    root_total = 230.0
+    root_total = 330.0
     for mount, _ in found_mounts.items():
         if '/tmp' in mount:
             root_total -= 30.0
 
         if '/var' in mount:
-            root_total -= 100.0
+            root_total -= 200.0
 
         if '/opt' in mount:
             root_total -= 100.0
