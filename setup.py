@@ -17,9 +17,9 @@ else:
 
 
 setuptools.setup(
-    name='ae-profile',
+    name='ae_preflight',
     version='0.1.0',
-    url='https://github.com/oldarmyc/ae_preflight.git',
+    url='https://github.com/Anaconda-Platform/ae-preflight',
     license='Apache License, Version 2.0',
     author='Dave Kludt',
     author_email='dkludt@anaconda.com',
