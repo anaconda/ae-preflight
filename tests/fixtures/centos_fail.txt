@@ -31,7 +31,7 @@ CPU Core: FAIL
 
 Mounts
 Mount Point:  /
-Recommended:  0.0 GB
+Minimum Size: 2.0 GB
 Total:        19.7 GB
 Free:         19.13 GB
 File System:  xfs
@@ -39,21 +39,21 @@ Ftype:        0
 Mount Result: WARN
 
 Mount Point:  /tmp
-Recommended:  30.0 GB
+Minimum Size: 30.0 GB
 Total:        19.7 GB
 Free:         19.13 GB
 File System:  ext4
 Mount Result: WARN
 
 Mount Point:  /opt/anaconda
-Recommended:  100.0 GB
+Minimum Size: 100.0 GB
 Total:        99.7 GB
 Free:         98.13 GB
 File System:  ext4
 Mount Result: WARN
 
 Mount Point:  /var
-Recommended:  100.0 GB
+Minimum Size: 200.0 GB
 Total:        99.7 GB
 Free:         98.13 GB
 File System:  ext4
@@ -128,12 +128,15 @@ Module Result: FAIL
 ---------------------------------------------------------
 
 Sysctl Settings
-Enabled:
+Enabled/Correct:
 net.ipv4.ip_forward
 
 Disabled:
 net.bridge.bridge-nf-call-ip6tables
 net.bridge.bridge-nf-call-iptables
+
+Incorrect:
+fs.inotify.max_user_watches = 8192
 
 Skipped:
 fs.may_detach_mounts

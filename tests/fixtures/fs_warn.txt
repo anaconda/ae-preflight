@@ -31,7 +31,7 @@ CPU Core: PASS
 
 Mounts
 Mount Point:  /
-Recommended:  0.0 GB
+Minimum Size: 2.0 GB
 Total:        19.7 GB
 Free:         19.13 GB
 File System:  xfs
@@ -39,21 +39,21 @@ Ftype:        0
 Mount Result: WARN
 
 Mount Point:  /tmp
-Recommended:  30.0 GB
+Minimum Size: 30.0 GB
 Total:        19.7 GB
 Free:         19.13 GB
 File System:  ext4
 Mount Result: WARN
 
 Mount Point:  /opt/anaconda
-Recommended:  100.0 GB
+Minimum Size: 100.0 GB
 Total:        99.7 GB
 Free:         98.13 GB
 File System:  ext4
 Mount Result: WARN
 
 Mount Point:  /var
-Recommended:  100.0 GB
+Minimum Size: 200.0 GB
 Total:        99.7 GB
 Free:         98.13 GB
 File System:  ext4
@@ -112,9 +112,10 @@ Module Result: PASS
 ---------------------------------------------------------
 
 Sysctl Settings
-Enabled:
-net.bridge.bridge-nf-call-iptables
+Enabled/Correct:
 net.bridge.bridge-nf-call-ip6tables
+net.bridge.bridge-nf-call-iptables
+fs.inotify.max_user_watches
 fs.may_detach_mounts
 net.ipv4.ip_forward
 

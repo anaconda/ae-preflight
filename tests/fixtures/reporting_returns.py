@@ -67,7 +67,7 @@ def mounts(test_pass=True):
     if test_pass:
         return {
             '/': {
-                'recommended': 130.0,
+                'recommended': 302.0,
                 'free': 498.13,
                 'total': 499.7,
                 'mount_options': 'rw,inode64,noquota',
@@ -85,7 +85,7 @@ def mounts(test_pass=True):
 
     return {
         '/': {
-            'recommended': 0.0,
+            'recommended': 2.0,
             'free': 19.13,
             'total': 19.7,
             'mount_options': 'rw,inode64,noquota',
@@ -107,7 +107,7 @@ def mounts(test_pass=True):
             'file_system': 'ext4'
         },
         '/var': {
-            'recommended': 100.0,
+            'recommended': 200.0,
             'free': 98.13,
             'total': 99.7,
             'mount_options': 'rw,inode64,noquota',
@@ -199,11 +199,13 @@ def sysctl(test_pass=True):
     if test_pass:
         return {
             'enabled': [
-                'net.bridge.bridge-nf-call-iptables',
                 'net.bridge.bridge-nf-call-ip6tables',
+                'net.bridge.bridge-nf-call-iptables',
+                'fs.inotify.max_user_watches',
                 'fs.may_detach_mounts',
                 'net.ipv4.ip_forward'
             ],
+            'incorrect': {},
             'disabled': [],
             'skipped': []
         }
@@ -214,6 +216,9 @@ def sysctl(test_pass=True):
             'net.bridge.bridge-nf-call-ip6tables',
             'net.bridge.bridge-nf-call-iptables'
         ],
+        'incorrect': {
+            'fs.inotify.max_user_watches': '8192'
+        },
         'skipped': [
             'fs.may_detach_mounts'
         ]

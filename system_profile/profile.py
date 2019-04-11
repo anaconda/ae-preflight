@@ -13,7 +13,7 @@ import re
 
 OS_VALUES = {
     'rhel': {
-        'versions': ['7.2', '7.3', '7.4', '7.5'],
+        'versions': ['7.2', '7.3', '7.4', '7.5', '7.6'],
     },
     'debian': {
         'versions': ['16.04'],
@@ -48,17 +48,28 @@ MODULE_EXCEPTIONS = {
         ]
     }
 }
-DEFAULT_SYSCTL = [
-    'net.bridge.bridge-nf-call-ip6tables',
-    'net.bridge.bridge-nf-call-iptables',
-    'fs.may_detach_mounts',
-    'net.ipv4.ip_forward'
-]
+DEFAULT_SYSCTL = {
+    'settings': [
+        'net.bridge.bridge-nf-call-ip6tables',
+        'net.bridge.bridge-nf-call-iptables',
+        'fs.inotify.max_user_watches',
+        'fs.may_detach_mounts',
+        'net.ipv4.ip_forward'
+    ],
+    'net.bridge.bridge-nf-call-ip6tables': '1',
+    'net.bridge.bridge-nf-call-iptables': '1',
+    'fs.inotify.max_user_watches': '1048576',
+    'fs.may_detach_mounts': '1',
+    'net.ipv4.ip_forward': '1'
+}
 OPEN_PORTS = [80, 443, 32009, 61009, 65535]
 FILE_TYPES = ['xfs', 'ext4']
 RUNNING_AGENTS = [
     'salt',
+    'chef',
     'puppet',
+    'redcloak',
+    'cylancesvc',
     'sisidsdaemon',
     'sisipsdaemon',
     'sisipsutildaemon'
@@ -195,9 +206,9 @@ def system_requirements(verbose):
 
     temp_memory = (
         execute_command(["cat", "/proc/meminfo"], verbose)
-    )
-    if temp_memory is not None:
-        found = re.search(r'^MemTotal:\s+(\d+)', temp_memory.decode('utf-8'))
+    ).decode('utf-8')
+    if temp_memory not in [None, '']:
+        found = re.search(r'^MemTotal:\s+(\d+)', temp_memory)
         if found:
             temp_memory = (int(found.groups()[0])/1024.0**2)
 
@@ -247,7 +258,7 @@ def mounts_check(verbose):
         if '/tmp' in mountpoint:
             mounts[mountpoint]['recommended'] = 30.0
         elif '/var' in mountpoint:
-            mounts[mountpoint]['recommended'] = 100.0
+            mounts[mountpoint]['recommended'] = 200.0
         elif '/opt' in mountpoint:
             mounts[mountpoint]['recommended'] = 100.0
 
@@ -260,13 +271,13 @@ def mounts_check(verbose):
                 mounts[mountpoint]['ftype'] = 'UNK'
 
     # Update root requirement
-    root_total = 230.0
+    root_total = 332.0
     for mount, _ in found_mounts.items():
         if '/tmp' in mount:
             root_total -= 30.0
 
         if '/var' in mount:
-            root_total -= 100.0
+            root_total -= 200.0
 
         if '/opt' in mount:
             root_total -= 100.0
@@ -385,6 +396,7 @@ def inspect_resolv_conf(resolv_conf_location, verbose):
     with kubernetes
     """
     all_options = []
+    search_domains = []
     if verbose:
         print('Checking {0}'.format(resolv_conf_location))
 
@@ -418,7 +430,10 @@ def check_open_ports(interface, verbose):
         if verbose:
             print('Checking ports on all active interfaces')
 
-        interfaces = get_active_interfaces('/proc/net/dev')
+        try:
+            interfaces = get_active_interfaces('/proc/net/dev')
+        except Exception:
+            interfaces = []
 
     for interface in interfaces:
         ip_address = get_interface_ip_address(interface, verbose)
@@ -452,6 +467,7 @@ def suse_infinity_check(system_file, verbose):
 def check_sysctl(verbose):
     enabled = []
     disabled = []
+    incorrect = {}
     skipped = []
     if verbose:
         print('Checking sysctl settings on system')
@@ -460,8 +476,7 @@ def check_sysctl(verbose):
         ['sysctl', '-a'],
         verbose
     ).decode('utf-8')
-
-    for setting in DEFAULT_SYSCTL:
+    for setting in DEFAULT_SYSCTL.get('settings'):
         if re.search(setting, all_sysctl_settings):
             temp_result = execute_command(
                 ['sysctl', setting],
@@ -469,8 +484,10 @@ def check_sysctl(verbose):
             ).decode('utf-8')
             if temp_result:
                 result = temp_result.split('=')[1].strip()
-                if str(result) == '1':
+                if str(result) == DEFAULT_SYSCTL.get(setting):
                     enabled.append(setting)
+                elif DEFAULT_SYSCTL.get(setting) not in ['1', '0']:
+                    incorrect[setting] = result
                 else:
                     disabled.append(setting)
             else:
@@ -481,7 +498,8 @@ def check_sysctl(verbose):
     sysctl_modules = {
         'enabled': enabled,
         'disabled': disabled,
-        'skipped': skipped
+        'skipped': skipped,
+        'incorrect': incorrect
     }
     return sysctl_modules
 
@@ -553,7 +571,7 @@ def process_results(system_info):
             mount_result = 'WARN'
             f.write('Mount Point:  {0}\n'.format(mount))
             f.write(
-                'Recommended:  {0} GB\n'.format(
+                'Minimum Size: {0} GB\n'.format(
                     mount_data.get('recommended')
                 )
             )
@@ -777,9 +795,15 @@ def process_results(system_info):
         sysctl = system_info['sysctl']
         sysctl_result = 'PASS'
         f.write('\nSysctl Settings\n')
-        f.write('Enabled:\n')
+        f.write('Enabled/Correct:\n')
         for setting in sysctl.get('enabled', []):
             f.write('{0}\n'.format(setting))
+
+        if len(sysctl.get('incorrect', {})) > 0:
+            sysctl_result = 'FAIL'
+            f.write('\nIncorrect:\n')
+            for setting, value in sysctl.get('incorrect').items():
+                f.write('{0} = {1}\n'.format(setting, value))
 
         if len(sysctl.get('disabled', [])) > 0:
             sysctl_result = 'FAIL'
