@@ -251,7 +251,7 @@ class TestSystemProfile(TestCase):
     def test_disk_space(self):
         expected_output = {
             '/': {
-                'recommended': 0.0,
+                'recommended': 2.0,
                 'free': 198.13,
                 'total': 199.7,
                 'mount_options': 'rw,inode64,noquota',
@@ -273,7 +273,7 @@ class TestSystemProfile(TestCase):
                 'file_system': 'ext4'
             },
             '/var': {
-                'recommended': 100.0,
+                'recommended': 200.0,
                 'free': 198.13,
                 'total': 199.7,
                 'mount_options': 'rw,inode64,noquota',
@@ -310,7 +310,7 @@ class TestSystemProfile(TestCase):
     def test_disk_space_unkown_ftype(self):
         expected_output = {
             '/': {
-                'recommended': 0.0,
+                'recommended': 2.0,
                 'free': 198.13,
                 'total': 199.7,
                 'mount_options': 'rw,inode64,noquota',
@@ -332,7 +332,7 @@ class TestSystemProfile(TestCase):
                 'file_system': 'ext4'
             },
             '/var': {
-                'recommended': 100.0,
+                'recommended': 200.0,
                 'free': 198.13,
                 'total': 199.7,
                 'mount_options': 'rw,inode64,noquota',
@@ -448,7 +448,7 @@ class TestSystemProfile(TestCase):
         mock_response.side_effect = [
             command_returns.get_pid(1, 'systemd'),
             command_returns.get_pid(230, 'puppet-agent'),
-            psutil._exceptions.NoSuchProcess(9876)
+            psutil.NoSuchProcess(9876)
         ]
         with mock.patch('system_profile.profile.psutil.pids') as pids:
             pids.return_value = temp_pids
@@ -556,6 +556,20 @@ class TestSystemProfile(TestCase):
             'Returned values did not match expected output'
         )
 
+    def test_open_ports_failure(self):
+        expected_output = {}
+        with mock.patch(
+            'system_profile.profile.get_active_interfaces'
+        ) as iface:
+            iface.side_effect = IOError()
+            returns = profile.check_open_ports(None, True)
+
+        self.assertEquals(
+            expected_output,
+            returns,
+            'Returned values did not match expected output'
+        )
+
     # SUSE Infinity check
     def test_suse_infinity(self):
         expected_output = True
@@ -572,20 +586,25 @@ class TestSystemProfile(TestCase):
     # Sysctl settings
     def test_sysctl_settings(self):
         expected_output = {
-            'enabled': ['net.ipv4.ip_forward'],
+            'enabled': [
+                'fs.inotify.max_user_watches',
+                'fs.may_detach_mounts',
+                'net.ipv4.ip_forward'
+            ],
             'disabled': [
                 'net.bridge.bridge-nf-call-ip6tables',
                 'net.bridge.bridge-nf-call-iptables',
-                'fs.may_detach_mounts'
             ],
-            'skipped': []
+            'skipped': [],
+            'incorrect': {}
         }
         mock_response = mock.Mock()
         mock_response.side_effect = [
             command_returns.all_sysctl_return(),
             b'net.bridge.bridge-nf-call-ip6tables = 0',
             b'net.bridge.bridge-nf-call-iptables = 0',
-            b'',
+            b'fs.inotify.max_user_watches = 1048576',
+            b'fs.may_detach_mounts = 1',
             b'net.ipv4.ip_forward = 1'
         ]
         with mock.patch(
@@ -602,19 +621,58 @@ class TestSystemProfile(TestCase):
 
     def test_sysctl_settings_skipped(self):
         expected_output = {
-            'enabled': ['net.ipv4.ip_forward'],
+            'enabled': ['fs.may_detach_mounts'],
             'disabled': [
                 'net.bridge.bridge-nf-call-ip6tables',
                 'net.bridge.bridge-nf-call-iptables'
             ],
-            'skipped': ['fs.may_detach_mounts']
+            'skipped': ['net.ipv4.ip_forward'],
+            'incorrect': {
+                'fs.inotify.max_user_watches': '8192'
+            },
         }
         mock_response = mock.Mock()
         mock_response.side_effect = [
             command_returns.all_sysctl_return(skipped=True),
             b'net.bridge.bridge-nf-call-ip6tables = 0',
             b'net.bridge.bridge-nf-call-iptables = 0',
-            b'net.ipv4.ip_forward = 1'
+            b'fs.inotify.max_user_watches = 8192',
+            b'fs.may_detach_mounts = 1'
+        ]
+        with mock.patch(
+            'system_profile.profile.execute_command',
+            side_effect=mock_response
+        ):
+            returns = profile.check_sysctl(True)
+
+        self.assertEquals(
+            expected_output,
+            returns,
+            'Returned values did not match expected output'
+        )
+
+    def test_sysctl_settings_no_response(self):
+        expected_output = {
+            'enabled': [
+                'fs.inotify.max_user_watches',
+                'fs.may_detach_mounts',
+            ],
+            'disabled': [
+                'net.bridge.bridge-nf-call-ip6tables',
+                'net.bridge.bridge-nf-call-iptables',
+                'net.ipv4.ip_forward'
+            ],
+            'skipped': [],
+            'incorrect': {}
+        }
+        mock_response = mock.Mock()
+        mock_response.side_effect = [
+            command_returns.all_sysctl_return(),
+            b'net.bridge.bridge-nf-call-ip6tables = 0',
+            b'net.bridge.bridge-nf-call-iptables = 0',
+            b'fs.inotify.max_user_watches = 1048576',
+            b'fs.may_detach_mounts = 1',
+            b''
         ]
         with mock.patch(
             'system_profile.profile.execute_command',

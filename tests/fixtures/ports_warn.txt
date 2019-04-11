@@ -31,7 +31,7 @@ CPU Core: PASS
 
 Mounts
 Mount Point:  /
-Recommended:  130.0 GB
+Minimum Size: 302.0 GB
 Total:        499.7 GB
 Free:         498.13 GB
 File System:  xfs
@@ -39,7 +39,7 @@ Ftype:        1
 Mount Result: PASS
 
 Mount Point:  /tmp
-Recommended:  30.0 GB
+Minimum Size: 30.0 GB
 Total:        39.7 GB
 Free:         39.13 GB
 File System:  ext4
@@ -93,9 +93,10 @@ Module Result: PASS
 ---------------------------------------------------------
 
 Sysctl Settings
-Enabled:
-net.bridge.bridge-nf-call-iptables
+Enabled/Correct:
 net.bridge.bridge-nf-call-ip6tables
+net.bridge.bridge-nf-call-iptables
+fs.inotify.max_user_watches
 fs.may_detach_mounts
 net.ipv4.ip_forward
 
