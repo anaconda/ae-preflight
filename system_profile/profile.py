@@ -199,9 +199,9 @@ def system_requirements(verbose):
 
     temp_memory = (
         execute_command(["cat", "/proc/meminfo"], verbose)
-    )
-    if temp_memory is not None:
-        found = re.search(r'^MemTotal:\s+(\d+)', temp_memory.decode('utf-8'))
+    ).decode('utf-8')
+    if temp_memory not in [None, '']:
+        found = re.search(r'^MemTotal:\s+(\d+)', temp_memory)
         if found:
             temp_memory = (int(found.groups()[0])/1024.0**2)
 
@@ -389,6 +389,7 @@ def inspect_resolv_conf(resolv_conf_location, verbose):
     with kubernetes
     """
     all_options = []
+    search_domains = []
     if verbose:
         print('Checking {0}'.format(resolv_conf_location))
 
@@ -422,7 +423,10 @@ def check_open_ports(interface, verbose):
         if verbose:
             print('Checking ports on all active interfaces')
 
-        interfaces = get_active_interfaces('/proc/net/dev')
+        try:
+            interfaces = get_active_interfaces('/proc/net/dev')
+        except Exception:
+            interfaces = []
 
     for interface in interfaces:
         ip_address = get_interface_ip_address(interface, verbose)
