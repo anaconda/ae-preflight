@@ -48,17 +48,20 @@ MODULE_EXCEPTIONS = {
         ]
     }
 }
-DEFAULT_SYSCTL = [
-    'net.bridge.bridge-nf-call-ip6tables',
-    'net.bridge.bridge-nf-call-iptables',
-    'fs.may_detach_mounts',
-    'net.ipv4.ip_forward'
-]
+DEFAULT_SYSCTL = {
+    'net.bridge.bridge-nf-call-ip6tables': '1',
+    'net.bridge.bridge-nf-call-iptables': '1',
+    'fs.inotify.max_user_watches': '1048576',
+    'fs.may_detach_mounts': '1',
+    'net.ipv4.ip_forward': '1'
+}
 OPEN_PORTS = [80, 443, 32009, 61009, 65535]
 FILE_TYPES = ['xfs', 'ext4']
 RUNNING_AGENTS = [
     'salt',
+    'chef',
     'puppet',
+    'redcloak',
     'cylancesvc',
     'sisidsdaemon',
     'sisipsdaemon',
@@ -261,7 +264,7 @@ def mounts_check(verbose):
                 mounts[mountpoint]['ftype'] = 'UNK'
 
     # Update root requirement
-    root_total = 330.0
+    root_total = 332.0
     for mount, _ in found_mounts.items():
         if '/tmp' in mount:
             root_total -= 30.0
@@ -453,6 +456,7 @@ def suse_infinity_check(system_file, verbose):
 def check_sysctl(verbose):
     enabled = []
     disabled = []
+    incorrect = {}
     skipped = []
     if verbose:
         print('Checking sysctl settings on system')
@@ -462,7 +466,7 @@ def check_sysctl(verbose):
         verbose
     ).decode('utf-8')
 
-    for setting in DEFAULT_SYSCTL:
+    for setting, value in DEFAULT_SYSCTL.items():
         if re.search(setting, all_sysctl_settings):
             temp_result = execute_command(
                 ['sysctl', setting],
@@ -470,8 +474,10 @@ def check_sysctl(verbose):
             ).decode('utf-8')
             if temp_result:
                 result = temp_result.split('=')[1].strip()
-                if str(result) == '1':
+                if str(result) == value:
                     enabled.append(setting)
+                elif value not in ['1', '0']:
+                    incorrect[setting] = result
                 else:
                     disabled.append(setting)
             else:
@@ -482,7 +488,8 @@ def check_sysctl(verbose):
     sysctl_modules = {
         'enabled': enabled,
         'disabled': disabled,
-        'skipped': skipped
+        'skipped': skipped,
+        'incorrect': incorrect
     }
     return sysctl_modules
 
@@ -554,7 +561,7 @@ def process_results(system_info):
             mount_result = 'WARN'
             f.write('Mount Point:  {0}\n'.format(mount))
             f.write(
-                'Recommended:  {0} GB\n'.format(
+                'Minimum Size: {0} GB\n'.format(
                     mount_data.get('recommended')
                 )
             )
@@ -778,9 +785,15 @@ def process_results(system_info):
         sysctl = system_info['sysctl']
         sysctl_result = 'PASS'
         f.write('\nSysctl Settings\n')
-        f.write('Enabled:\n')
+        f.write('Enabled/Correct:\n')
         for setting in sysctl.get('enabled', []):
             f.write('{0}\n'.format(setting))
+
+        if len(sysctl.get('incorrect', {})) > 0:
+            sysctl_result = 'FAIL'
+            f.write('\nIncorrect:\n')
+            for setting, value in sysctl.get('incorrect').items():
+                f.write('{0} = {1}\n'.format(setting, value))
 
         if len(sysctl.get('disabled', [])) > 0:
             sysctl_result = 'FAIL'
