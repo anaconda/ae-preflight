@@ -624,7 +624,7 @@ class TestSystemProfile(TestCase):
             'enabled': ['fs.may_detach_mounts'],
             'disabled': [
                 'net.bridge.bridge-nf-call-ip6tables',
-                'net.bridge.bridge-nf-call-iptables'
+                'net.bridge.bridge-nf-call-iptables',
             ],
             'skipped': ['net.ipv4.ip_forward'],
             'incorrect': {

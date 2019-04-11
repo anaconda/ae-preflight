@@ -49,6 +49,13 @@ MODULE_EXCEPTIONS = {
     }
 }
 DEFAULT_SYSCTL = {
+    'settings': [
+        'net.bridge.bridge-nf-call-ip6tables',
+        'net.bridge.bridge-nf-call-iptables',
+        'fs.inotify.max_user_watches',
+        'fs.may_detach_mounts',
+        'net.ipv4.ip_forward'
+    ],
     'net.bridge.bridge-nf-call-ip6tables': '1',
     'net.bridge.bridge-nf-call-iptables': '1',
     'fs.inotify.max_user_watches': '1048576',
@@ -469,8 +476,7 @@ def check_sysctl(verbose):
         ['sysctl', '-a'],
         verbose
     ).decode('utf-8')
-
-    for setting, value in DEFAULT_SYSCTL.items():
+    for setting in DEFAULT_SYSCTL.get('settings'):
         if re.search(setting, all_sysctl_settings):
             temp_result = execute_command(
                 ['sysctl', setting],
@@ -478,9 +484,9 @@ def check_sysctl(verbose):
             ).decode('utf-8')
             if temp_result:
                 result = temp_result.split('=')[1].strip()
-                if str(result) == value:
+                if str(result) == DEFAULT_SYSCTL.get(setting):
                     enabled.append(setting)
-                elif value not in ['1', '0']:
+                elif DEFAULT_SYSCTL.get(setting) not in ['1', '0']:
                     incorrect[setting] = result
                 else:
                     disabled.append(setting)

@@ -143,16 +143,19 @@ def lsmod_return():
 def all_sysctl_return(skipped=False):
     if skipped:
         return (
-            'vm.overcommit_memory = 0\nnet.bridge.bridge-nf-call-ip6tables = 0'
+            'vm.overcommit_memory = 0'
+            '\nnet.bridge.bridge-nf-call-ip6tables = 0'
             '\nnet.bridge.bridge-nf-call-iptables = 0'
             '\nfs.may_detach_mounts = 0'
             '\nfs.inotify.max_user_watches = 8192\n'
         ).encode('utf-8')
     else:
         return (
-            'vm.overcommit_memory = 0\nnet.bridge.bridge-nf-call-ip6tables = 0'
+            'vm.overcommit_memory = 0'
+            '\nnet.bridge.bridge-nf-call-ip6tables = 0'
             '\nnet.bridge.bridge-nf-call-iptables = 0'
-            '\nfs.may_detach_mounts = 1\nnet.ipv4.ip_forward = 1'
+            '\nfs.may_detach_mounts = 1'
+            '\nnet.ipv4.ip_forward = 1'
             '\nfs.inotify.max_user_watches = 1048576\n'
         ).encode('utf-8')
 
