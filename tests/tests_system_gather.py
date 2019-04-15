@@ -688,4 +688,22 @@ class TestSystemProfile(TestCase):
 
     # Directory checks
     def test_directory_paths(self):
-        pass
+        expected_output = [
+            '/etc/chef',
+            '/etc/salt'
+        ]
+        mock_response = mock.Mock()
+        mock_response.side_effect = [
+            True, True, False, False, False, False, False, False, False
+        ]
+        with mock.patch(
+            'system_profile.profile.os.path.exists',
+            side_effect=mock_response
+        ):
+            returns = profile.check_dir_paths(True)
+
+        self.assertEquals(
+            expected_output,
+            returns,
+            'Returned values did not match expected output'
+        )
