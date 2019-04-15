@@ -685,3 +685,7 @@ class TestSystemProfile(TestCase):
             returns,
             'Returned values did not match expected output'
         )
+
+    # Directory checks
+    def test_directory_paths(self):
+        pass

@@ -74,6 +74,17 @@ RUNNING_AGENTS = [
     'sisipsdaemon',
     'sisipsutildaemon'
 ]
+DIR_PATHS = [
+    '/etc/chef',
+    '/etc/salt',
+    '/etc/puppet',
+    '/etc/ansible',
+    '/var/cfengine',
+    '/opt/symantec',
+    '/var/lib/puppet',
+    '/usr/local/etc/salt',
+    '/var/opt/secureworks'
+]
 
 
 def execute_command(command, verbose):
@@ -504,6 +515,18 @@ def check_sysctl(verbose):
     return sysctl_modules
 
 
+def check_dir_paths(verbose):
+    dir_paths = []
+    if verbose:
+        print('Checking for directories on system')
+
+    for dir in DIR_PATHS:
+        if os.path.exists(dir):
+            dir_paths.append(dir)
+
+    return dir_paths
+
+
 def process_results(system_info):
     """
     Layout the report file and print out an overall pass/warn/fail for each
@@ -826,6 +849,31 @@ def process_results(system_info):
                 '>> /etc/sysctl.d/10-SYSCTL_SETTING.conf"\n\n'
             )
 
+        f.write('---------------------------------------------------------\n')
+
+        # dir paths
+        dir_paths = system_info['dir_paths']
+        path_result = 'PASS'
+        f.write('\nDirectory Checks\n')
+
+        if len(dir_paths) > 0:
+            f.write('Found directories:\n')
+            path_result = 'WARN'
+            for dir_path in dir_paths:
+                f.write('{0}\n'.format(dir_path))
+        else:
+            f.write('No directories found\n')
+
+        if path_result == 'WARN':
+            f.write(
+                'Note: The directory check is looking for directories '
+                'created\nor left over from processes, config management, '
+                'and other\nservices that have been found to cause issues '
+                'with AE5.\n\n'
+            )
+
+        f.write('\nDirectory Result: {0}\n\n'.format(path_result))
+
         f.write('=========================================================\n')
 
         f.write('\nOverall Result: {0}\n\n'.format(overall_result))
@@ -900,6 +948,7 @@ def main():
         )
 
     system_info['sysctl'] = check_sysctl(args.verbose)
+    system_info['dir_paths'] = check_dir_paths(args.verbose)
     overall_result = process_results(system_info)
     print('\nOverall Result: {0}'.format(overall_result))
     print(
