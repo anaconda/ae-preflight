@@ -243,3 +243,14 @@ def infinity(test_pass=True):
         return True
 
     return False
+
+
+def check_dirs(test_pass=True):
+    if test_pass:
+        return []
+    else:
+        return [
+            '/etc/chef',
+            '/etc/salt',
+            '/etc/puppet'
+        ]

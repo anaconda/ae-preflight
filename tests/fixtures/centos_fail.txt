@@ -150,6 +150,21 @@ sysctl -w SYSCTL_SETTING=1
 To persist through a reboot do the following as root:
 echo -e "SYSCTL_SETTING = 1" >> /etc/sysctl.d/10-SYSCTL_SETTING.conf"
 
+---------------------------------------------------------
+
+Directory Checks
+
+Found directories:
+/etc/chef
+/etc/salt
+/etc/puppet
+
+Directory Result: WARN
+
+Note: The directory check is looking for directories created
+or left over from processes, config management, and other
+services that have been found to cause issues with AE5.
+
 =========================================================
 
 Overall Result: FAIL

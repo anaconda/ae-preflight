@@ -103,6 +103,13 @@ net.ipv4.ip_forward
 
 Sysctl Result: PASS
 
+---------------------------------------------------------
+
+Directory Checks
+No directories found
+
+Directory Result: PASS
+
 =========================================================
 
 Overall Result: WARN

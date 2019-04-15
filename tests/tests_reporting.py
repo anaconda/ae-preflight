@@ -77,7 +77,14 @@ class TestReporting(TestCase):
                                             sysctl.return_value = (
                                                 reporting_returns.sysctl()
                                             )
-                                            profile.main()
+                                            with mock.patch(
+                                                'system_profile.profile.'
+                                                'check_dir_paths'
+                                            ) as check_dir:
+                                                check_dir.return_value = (
+                                                    reporting_returns.check_dirs()  # noqa
+                                                )
+                                                profile.main()
 
         results_file = glob.glob('results.txt')
         self.assertEqual(
@@ -155,7 +162,14 @@ class TestReporting(TestCase):
                                                 sysctl.return_value = (
                                                     reporting_returns.sysctl()
                                                 )
-                                                profile.main()
+                                                with mock.patch(
+                                                    'system_profile.profile.'
+                                                    'check_dir_paths'
+                                                ) as check_dir:
+                                                    check_dir.return_value = (
+                                                        reporting_returns.check_dirs()  # noqa
+                                                    )
+                                                    profile.main()
 
         results_file = glob.glob('results.txt')
         self.assertEqual(
@@ -232,7 +246,14 @@ class TestReporting(TestCase):
                                                 sysctl.return_value = (
                                                     reporting_returns.sysctl()
                                                 )
-                                                profile.main()
+                                                with mock.patch(
+                                                    'system_profile.profile.'
+                                                    'check_dir_paths'
+                                                ) as check_dir:
+                                                    check_dir.return_value = (
+                                                        reporting_returns.check_dirs()  # noqa
+                                                    )
+                                                    profile.main()
 
         results_file = glob.glob('results.txt')
         self.assertEqual(
@@ -321,7 +342,14 @@ class TestReporting(TestCase):
                                                         test_pass
                                                     )
                                                 )
-                                                profile.main()
+                                                with mock.patch(
+                                                    'system_profile.profile.'
+                                                    'check_dir_paths'
+                                                ) as check_dir:
+                                                    check_dir.return_value = (
+                                                        reporting_returns.check_dirs(test_pass)  # noqa
+                                                    )
+                                                    profile.main()
 
         results_file = glob.glob('results.txt')
         self.assertEqual(
@@ -409,7 +437,14 @@ class TestReporting(TestCase):
                                                         test_pass
                                                     )
                                                 )
-                                                profile.main()
+                                                with mock.patch(
+                                                    'system_profile.profile.'
+                                                    'check_dir_paths'
+                                                ) as check_dir:
+                                                    check_dir.return_value = (
+                                                        reporting_returns.check_dirs(test_pass)  # noqa
+                                                    )
+                                                    profile.main()
 
         results_file = glob.glob('results.txt')
         self.assertEqual(
@@ -482,7 +517,14 @@ class TestReporting(TestCase):
                                             sysctl.return_value = (
                                                 reporting_returns.sysctl()
                                             )
-                                            profile.main()
+                                            with mock.patch(
+                                                'system_profile.profile.'
+                                                'check_dir_paths'
+                                            ) as check_dir:
+                                                check_dir.return_value = (
+                                                    reporting_returns.check_dirs()  # noqa
+                                                )
+                                                profile.main()
 
         results_file = glob.glob('results.txt')
         self.assertEqual(
@@ -553,7 +595,14 @@ class TestReporting(TestCase):
                                             sysctl.return_value = (
                                                 reporting_returns.sysctl()
                                             )
-                                            profile.main()
+                                            with mock.patch(
+                                                'system_profile.profile.'
+                                                'check_dir_paths'
+                                            ) as check_dir:
+                                                check_dir.return_value = (
+                                                    reporting_returns.check_dirs()  # noqa
+                                                )
+                                                profile.main()
 
         results_file = glob.glob('results.txt')
         self.assertEqual(
@@ -624,7 +673,14 @@ class TestReporting(TestCase):
                                             sysctl.return_value = (
                                                 reporting_returns.sysctl()
                                             )
-                                            profile.main()
+                                            with mock.patch(
+                                                'system_profile.profile.'
+                                                'check_dir_paths'
+                                            ) as check_dir:
+                                                check_dir.return_value = (
+                                                    reporting_returns.check_dirs()  # noqa
+                                                )
+                                                profile.main()
 
         results_file = glob.glob('results.txt')
         self.assertEqual(
@@ -697,7 +753,14 @@ class TestReporting(TestCase):
                                             sysctl.return_value = (
                                                 reporting_returns.sysctl()
                                             )
-                                            profile.main()
+                                            with mock.patch(
+                                                'system_profile.profile.'
+                                                'check_dir_paths'
+                                            ) as check_dir:
+                                                check_dir.return_value = (
+                                                    reporting_returns.check_dirs()  # noqa
+                                                )
+                                                profile.main()
 
         results_file = glob.glob('results.txt')
         self.assertEqual(
