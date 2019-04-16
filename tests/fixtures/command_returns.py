@@ -1,3 +1,5 @@
+import sys
+
 
 def ip_addr_show():
     ip_show = (
@@ -15,32 +17,42 @@ def ip_addr_show():
 
 def distro_release_info(os):
     return_value = {}
-    if os == 'centos':
-        return_value = {
-            'codename': 'Core',
-            'name': 'CentOS Linux',
-            'version_id': '7.5.1804',
-            'id': 'centos'
-        }
-    elif os == 'ubuntu':
-        return_value = {
-            'codename': 'Xenial Xerus',
-            'name': 'Ubuntu',
-            'version_id': '16.04.4',
-            'id': 'ec2'
-        }
-    elif os == 'suse':
-        return_value = {
-            'name': 'SLES',
-            'version': '15',
-            'codename': '',
-            'version_id': '15',
-            'pretty_name': 'SUSE Linux Enterprise Server 15',
-            'id': 'sles',
-            'id_like': 'suse',
-            'ansi_color': '0;32',
-            'cpe_name': 'cpe:/o:suse:sles:15'
-        }
+    # Check python version and if 3.8 use these returns for distro
+    if sys.version_info[:2] > (3, 7):
+        if os == 'centos':
+            return_value = {
+                'codename': 'Core',
+                'name': 'CentOS Linux',
+                'version_id': '7.5.1804',
+                'id': 'centos'
+            }
+        elif os == 'ubuntu':
+            return_value = {
+                'codename': 'Xenial Xerus',
+                'name': 'Ubuntu',
+                'version_id': '16.04.4',
+                'id': 'ec2'
+            }
+        elif os == 'suse':
+            return_value = {
+                'name': 'SLES',
+                'version': '15',
+                'codename': '',
+                'version_id': '15',
+                'pretty_name': 'SUSE Linux Enterprise Server 15',
+                'id': 'sles',
+                'id_like': 'suse',
+                'ansi_color': '0;32',
+                'cpe_name': 'cpe:/o:suse:sles:15'
+            }
+    # If python version 3.7 or below use platform returns
+    else:
+        if os == 'centos':
+            return_value = ('CentOS Linux', '7.5.1804', 'core')
+        elif os == 'ubuntu':
+            return_value = ('Ubuntu', '16.04', 'xenial')
+        elif os == 'suse':
+            return_value = ('SUSE Linux Enterprise Server', '12', 'x86_64')
 
     return return_value
 

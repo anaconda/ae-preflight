@@ -19,12 +19,10 @@ requirements:
     - python >=2.7,<3.7
     - setuptools
     - psutil
-    - distro
 
   run:
     - python
     - psutil
-    - distro
 
 test:
   imports:

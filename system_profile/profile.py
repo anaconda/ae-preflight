@@ -6,9 +6,23 @@ from subprocess import PIPE
 import argparse
 import socket
 import psutil
-import distro
+import sys
 import os
 import re
+
+
+"""
+In python 3.8 platform is being removed and distro will be in its own package
+"""
+if sys.version_info[:2] <= (3, 7):
+    import platform
+
+
+# Try to import distro but it is only needed in python 3.8 and above
+try:
+    import distro
+except Exception:
+    pass
 
 
 OS_VALUES = {
@@ -171,20 +185,43 @@ def get_os_info(verbose):
     if verbose:
         print('Gathering OS and distribution information')
 
-    linux_info = distro.distro_release_info()
-    # On SUSE distro_release_info gives an empty {} so get the info another way
-    if linux_info == {}:
-        linux_info = distro.os_release_info()
+    # Ensure to use distro when running python 3.8
+    if sys.version_info[:2] > (3, 7):
+        linux_info = distro.distro_release_info()
+        # On SUSE distro_release_info gives an empty {}
+        # so get the info another way
+        if linux_info == {}:
+            linux_info = distro.os_release_info()
 
-    version = 'UNK'
-    if linux_info.get('version_id'):
-        temp_version = linux_info.get('version_id').split('.')
-        if len(temp_version) > 1:
-            version = '{0}.{1}'.format(temp_version[0], temp_version[1])
-        else:
-            version = temp_version[0]
+        version = 'UNK'
+        if linux_info.get('version_id'):
+            temp_version = linux_info.get('version_id').split('.')
+            if len(temp_version) > 1:
+                version = '{0}.{1}'.format(temp_version[0], temp_version[1])
+            else:
+                version = temp_version[0]
 
-    profile['distribution'] = linux_info.get('id')
+        profile['distribution'] = linux_info.get('id')
+    else:
+        temp_info = platform.linux_distribution()
+        distribution = None
+        if temp_info[0] != '':
+            split_os = temp_info[0].split(' ')
+            distribution = split_os[0].lower()
+
+        profile['distribution'] = distribution
+        linux_info = {
+            'version_id': temp_info[1],
+            'name': temp_info[0]
+        }
+        version = 'UNK'
+        if linux_info.get('version_id'):
+            temp_version = linux_info.get('version_id').split('.')
+            if len(temp_version) > 1:
+                version = '{0}.{1}'.format(temp_version[0], temp_version[1])
+            else:
+                version = temp_version[0]
+
     profile['version'] = version
     profile['dist_name'] = linux_info.get('name')
 

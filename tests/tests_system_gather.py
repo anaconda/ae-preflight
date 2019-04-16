@@ -31,7 +31,7 @@ class TestSystemProfile(TestCase):
     def test_version(self):
         self.assertEquals(
             system_profile.__version__,
-            '0.1.0',
+            '0.1.3',
             'Version does not match expected value'
         )
 
@@ -141,20 +141,28 @@ class TestSystemProfile(TestCase):
         )
 
     # OS Info
-    def test_os_info_rhel(self):
+    def test_os_info_rhel_platform(self):
         expected_output = {
             'distribution': 'centos',
             'version': '7.5',
             'dist_name': 'CentOS Linux',
             'based_on': 'rhel'
         }
-        with mock.patch(
-            'system_profile.profile.distro.distro_release_info'
-        ) as os:
-            os.return_value = command_returns.distro_release_info('centos')
-            with mock.patch('system_profile.profile.os.path.isfile') as file:
-                file.return_value = True
-                os_info = profile.get_os_info(True)
+        with mock.patch('tests.fixtures.command_returns.sys') as v_info:
+            v_info.version_info = (3, 7, 0, 'final', 0)
+            with mock.patch('system_profile.profile.sys') as version:
+                version.version_info = (3, 7, 0, 'final', 0)
+                with mock.patch(
+                    'system_profile.profile.platform.linux_distribution'
+                ) as os:
+                    os.return_value = command_returns.distro_release_info(
+                        'centos'
+                    )
+                    with mock.patch(
+                        'system_profile.profile.os.path.isfile'
+                    ) as file:
+                        file.return_value = True
+                        os_info = profile.get_os_info(True)
 
         self.assertEquals(
             expected_output,
@@ -162,7 +170,36 @@ class TestSystemProfile(TestCase):
             'OS information returned was not the expected value'
         )
 
-    def test_os_info_suse(self):
+    def test_os_info_rhel_distro(self):
+        expected_output = {
+            'distribution': 'centos',
+            'version': '7.5',
+            'dist_name': 'CentOS Linux',
+            'based_on': 'rhel'
+        }
+        with mock.patch('tests.fixtures.command_returns.sys') as v_info:
+            v_info.version_info = (3, 8, 0, 'final', 0)
+            with mock.patch('system_profile.profile.sys') as version:
+                version.version_info = (3, 8, 0, 'final', 0)
+                with mock.patch(
+                    'system_profile.profile.distro.distro_release_info'
+                ) as os:
+                    os.return_value = command_returns.distro_release_info(
+                        'centos'
+                    )
+                    with mock.patch(
+                        'system_profile.profile.os.path.isfile'
+                    ) as file:
+                        file.return_value = True
+                        os_info = profile.get_os_info(True)
+
+        self.assertEquals(
+            expected_output,
+            os_info,
+            'OS information returned was not the expected value'
+        )
+
+    def test_os_info_suse_distro(self):
         expected_output = {
             'distribution': 'sles',
             'version': '15',
@@ -171,21 +208,26 @@ class TestSystemProfile(TestCase):
         }
         mock_response = mock.Mock()
         mock_response.side_effect = [False, False, True]
-        with mock.patch(
-            'system_profile.profile.distro.distro_release_info'
-        ) as os:
-            os.return_value = {}
-            with mock.patch(
-                'system_profile.profile.distro.os_release_info'
-            ) as distro:
-                distro.return_value = (
-                    command_returns.distro_release_info('suse')
-                )
+
+        with mock.patch('tests.fixtures.command_returns.sys') as v_info:
+            v_info.version_info = (3, 8, 0, 'final', 0)
+            with mock.patch('system_profile.profile.sys') as version:
+                version.version_info = (3, 8, 0, 'final', 0)
                 with mock.patch(
-                    'system_profile.profile.os.path.isfile',
-                    side_effect=mock_response
-                ):
-                    os_info = profile.get_os_info(True)
+                    'system_profile.profile.distro.distro_release_info'
+                ) as os:
+                    os.return_value = {}
+                    with mock.patch(
+                        'system_profile.profile.distro.os_release_info'
+                    ) as distro:
+                        distro.return_value = (
+                            command_returns.distro_release_info('suse')
+                        )
+                        with mock.patch(
+                            'system_profile.profile.os.path.isfile',
+                            side_effect=mock_response
+                        ):
+                            os_info = profile.get_os_info(True)
 
         self.assertEquals(
             expected_output,
@@ -193,7 +235,71 @@ class TestSystemProfile(TestCase):
             'OS information returned was not the expected value'
         )
 
-    def test_os_info_debian(self):
+    def test_os_info_suse_platform(self):
+        expected_output = {
+            'distribution': 'suse',
+            'version': '12',
+            'dist_name': 'SUSE Linux Enterprise Server',
+            'based_on': 'suse'
+        }
+        mock_response = mock.Mock()
+        mock_response.side_effect = [False, False, True]
+
+        with mock.patch('tests.fixtures.command_returns.sys') as v_info:
+            v_info.version_info = (3, 7, 0, 'final', 0)
+            with mock.patch('system_profile.profile.sys') as version:
+                version.version_info = (3, 7, 0, 'final', 0)
+                with mock.patch(
+                    'system_profile.profile.platform.linux_distribution'
+                ) as os:
+                    os.return_value = command_returns.distro_release_info(
+                        'suse'
+                    )
+                    with mock.patch(
+                        'system_profile.profile.os.path.isfile',
+                        side_effect=mock_response
+                    ):
+                        os_info = profile.get_os_info(True)
+
+        self.assertEquals(
+            expected_output,
+            os_info,
+            'OS information returned was not the expected value'
+        )
+
+    def test_os_info_debian_platform(self):
+        expected_output = {
+            'distribution': 'ubuntu',
+            'version': '16.04',
+            'dist_name': 'Ubuntu',
+            'based_on': 'debian'
+        }
+        mock_response = mock.Mock()
+        mock_response.side_effect = [False, True]
+
+        with mock.patch('tests.fixtures.command_returns.sys') as v_info:
+            v_info.version_info = (3, 7, 0, 'final', 0)
+            with mock.patch('system_profile.profile.sys') as version:
+                version.version_info = (3, 7, 0, 'final', 0)
+                with mock.patch(
+                    'system_profile.profile.platform.linux_distribution'
+                ) as os:
+                    os.return_value = command_returns.distro_release_info(
+                        'ubuntu'
+                    )
+                    with mock.patch(
+                        'system_profile.profile.os.path.isfile',
+                        side_effect=mock_response
+                    ):
+                        os_info = profile.get_os_info(True)
+
+        self.assertEquals(
+            expected_output,
+            os_info,
+            'OS information returned was not the expected value'
+        )
+
+    def test_os_info_debian_distro(self):
         expected_output = {
             'distribution': 'ec2',
             'version': '16.04',
@@ -202,15 +308,22 @@ class TestSystemProfile(TestCase):
         }
         mock_response = mock.Mock()
         mock_response.side_effect = [False, True]
-        with mock.patch(
-            'system_profile.profile.distro.distro_release_info'
-        ) as os:
-            os.return_value = command_returns.distro_release_info('ubuntu')
-            with mock.patch(
-                'system_profile.profile.os.path.isfile',
-                side_effect=mock_response
-            ):
-                os_info = profile.get_os_info(True)
+
+        with mock.patch('tests.fixtures.command_returns.sys') as v_info:
+            v_info.version_info = (3, 8, 0, 'final', 0)
+            with mock.patch('system_profile.profile.sys') as version:
+                version.version_info = (3, 8, 0, 'final', 0)
+                with mock.patch(
+                    'system_profile.profile.distro.distro_release_info'
+                ) as os:
+                    os.return_value = command_returns.distro_release_info(
+                        'ubuntu'
+                    )
+                    with mock.patch(
+                        'system_profile.profile.os.path.isfile',
+                        side_effect=mock_response
+                    ):
+                        os_info = profile.get_os_info(True)
 
         self.assertEquals(
             expected_output,
