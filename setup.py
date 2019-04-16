@@ -4,9 +4,13 @@ import setuptools
 import sys
 
 
-requirements = ['psutil', 'distro']
+requirements = ['psutil']
 if sys.version_info[:2] < (2, 7):
     requirements.append('argparse')
+
+
+if sys.version_info[:2] > (3, 7):
+    requirements.append('distro')
 
 
 test_requirements = ['mock', 'nose']
@@ -18,7 +22,7 @@ else:
 
 setuptools.setup(
     name='ae_preflight',
-    version='0.1.2',
+    version='0.1.3',
     url='https://github.com/Anaconda-Platform/ae-preflight',
     license='Apache License, Version 2.0',
     author='Dave Kludt',
