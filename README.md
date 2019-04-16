@@ -15,7 +15,7 @@ python setup.py install
 #### Running
 To run the profiler from the command line enter in the following:
 ```sh
-ae-profile
+ae-preflight
 ```
 
 ##### Options for running profiler

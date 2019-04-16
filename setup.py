@@ -38,10 +38,10 @@ setuptools.setup(
     },
     entry_points={
         'console_scripts': [
-            'ae-profile=system_profile.profile:main'
+            'ae-preflight=ae_preflight.profile:main'
         ]
     },
-    packages=['system_profile'],
+    packages=['ae_preflight'],
     classifiers=[
         'Intended Audience :: Developers',
         'License :: OSI Approved :: Apache Software License',
