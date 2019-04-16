@@ -12,7 +12,7 @@ build:
   number: 0
   script: python setup.py install --single-version-externally-managed --record=record.txt
   entry_points:
-    - ae-preflight=system_profile.profile:main
+    - ae-preflight=ae_preflight.profile:main
 
 requirements:
   build:
