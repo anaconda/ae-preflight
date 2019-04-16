@@ -13,7 +13,7 @@ if sys.version_info[:2] > (3, 7):
     requirements.append('distro')
 
 
-test_requirements = ['mock', 'nose']
+test_requirements = ['mock', 'nose', 'distro']
 if sys.version_info[:2] < (2, 7):
     test_requirements.extend(['flake8 < 3', 'unittest2'])
 else:
