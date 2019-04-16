@@ -1,10 +1,10 @@
 
 from __future__ import absolute_import
 from .fixtures import command_returns
-from system_profile import profile
+from ae_preflight import profile
 
 
-import system_profile
+import ae_preflight
 import psutil
 import sys
 
@@ -30,7 +30,7 @@ class TestSystemProfile(TestCase):
 
     def test_version(self):
         self.assertEquals(
-            system_profile.__version__,
+            ae_preflight.__version__,
             '0.1.3',
             'Version does not match expected value'
         )
@@ -39,7 +39,7 @@ class TestSystemProfile(TestCase):
     def test_execute_command_success(self):
         test_command = ['getenforce']
         selinux_status = None
-        with mock.patch('system_profile.profile.Popen') as popen:
+        with mock.patch('ae_preflight.profile.Popen') as popen:
             popen.return_value.communicate.return_value = ('enforcing', '')
             popen.return_value.returncode = 0
             selinux_status = profile.execute_command(test_command, False)
@@ -53,7 +53,7 @@ class TestSystemProfile(TestCase):
     def test_execute_command_error(self):
         test_command = ['getenforce']
         selinux_status = None
-        with mock.patch('system_profile.profile.Popen') as popen:
+        with mock.patch('ae_preflight.profile.Popen') as popen:
             popen.return_value.communicate.return_value = ('', b'Error')
             popen.return_value.returncode = 1
             selinux_status = profile.execute_command(test_command, True)
@@ -67,7 +67,7 @@ class TestSystemProfile(TestCase):
     def test_execute_command_verbose_success(self):
         test_command = ['getenforce']
         selinux_status = None
-        with mock.patch('system_profile.profile.Popen') as popen:
+        with mock.patch('ae_preflight.profile.Popen') as popen:
             popen.return_value.communicate.return_value = ('enforcing', '')
             popen.return_value.returncode = 0
             selinux_status = profile.execute_command(test_command, True)
@@ -81,7 +81,7 @@ class TestSystemProfile(TestCase):
     # Socket
     def test_socket_success(self):
         port_status = 'Not Tested'
-        with mock.patch('system_profile.profile.socket') as sock:
+        with mock.patch('ae_preflight.profile.socket') as sock:
             sock.socket.return_value.connect_ex.return_value = 0
             port_status = profile.check_for_socket('eth0', '80', True)
 
@@ -93,7 +93,7 @@ class TestSystemProfile(TestCase):
 
     def test_socket_failure(self):
         port_status = 'Not Tested'
-        with mock.patch('system_profile.profile.socket') as sock:
+        with mock.patch('ae_preflight.profile.socket') as sock:
             sock.socket.return_value.connect_ex.return_value = 1
             port_status = profile.check_for_socket('eth0', '443', False)
 
@@ -118,7 +118,7 @@ class TestSystemProfile(TestCase):
     # IP address
     def test_get_ip_address_bytes(self):
         expected_result = '10.200.30.165'
-        with mock.patch('system_profile.profile.execute_command') as cmd:
+        with mock.patch('ae_preflight.profile.execute_command') as cmd:
             cmd.return_value = command_returns.ip_addr_show()
             ip_address = profile.get_interface_ip_address('eth0', False)
 
@@ -130,7 +130,7 @@ class TestSystemProfile(TestCase):
 
     def test_get_ip_address_string(self):
         expected_result = '10.200.30.165'
-        with mock.patch('system_profile.profile.execute_command') as cmd:
+        with mock.patch('ae_preflight.profile.execute_command') as cmd:
             cmd.return_value = command_returns.ip_addr_show().decode('utf-8')
             ip_address = profile.get_interface_ip_address('eth0', False)
 
@@ -150,16 +150,16 @@ class TestSystemProfile(TestCase):
         }
         with mock.patch('tests.fixtures.command_returns.sys') as v_info:
             v_info.version_info = (3, 7, 0, 'final', 0)
-            with mock.patch('system_profile.profile.sys') as version:
+            with mock.patch('ae_preflight.profile.sys') as version:
                 version.version_info = (3, 7, 0, 'final', 0)
                 with mock.patch(
-                    'system_profile.profile.platform.linux_distribution'
+                    'ae_preflight.profile.platform.linux_distribution'
                 ) as os:
                     os.return_value = command_returns.distro_release_info(
                         'centos'
                     )
                     with mock.patch(
-                        'system_profile.profile.os.path.isfile'
+                        'ae_preflight.profile.os.path.isfile'
                     ) as file:
                         file.return_value = True
                         os_info = profile.get_os_info(True)
@@ -179,16 +179,16 @@ class TestSystemProfile(TestCase):
         }
         with mock.patch('tests.fixtures.command_returns.sys') as v_info:
             v_info.version_info = (3, 8, 0, 'final', 0)
-            with mock.patch('system_profile.profile.sys') as version:
+            with mock.patch('ae_preflight.profile.sys') as version:
                 version.version_info = (3, 8, 0, 'final', 0)
                 with mock.patch(
-                    'system_profile.profile.distro.distro_release_info'
+                    'ae_preflight.profile.distro.distro_release_info'
                 ) as os:
                     os.return_value = command_returns.distro_release_info(
                         'centos'
                     )
                     with mock.patch(
-                        'system_profile.profile.os.path.isfile'
+                        'ae_preflight.profile.os.path.isfile'
                     ) as file:
                         file.return_value = True
                         os_info = profile.get_os_info(True)
@@ -211,20 +211,20 @@ class TestSystemProfile(TestCase):
 
         with mock.patch('tests.fixtures.command_returns.sys') as v_info:
             v_info.version_info = (3, 8, 0, 'final', 0)
-            with mock.patch('system_profile.profile.sys') as version:
+            with mock.patch('ae_preflight.profile.sys') as version:
                 version.version_info = (3, 8, 0, 'final', 0)
                 with mock.patch(
-                    'system_profile.profile.distro.distro_release_info'
+                    'ae_preflight.profile.distro.distro_release_info'
                 ) as os:
                     os.return_value = {}
                     with mock.patch(
-                        'system_profile.profile.distro.os_release_info'
+                        'ae_preflight.profile.distro.os_release_info'
                     ) as distro:
                         distro.return_value = (
                             command_returns.distro_release_info('suse')
                         )
                         with mock.patch(
-                            'system_profile.profile.os.path.isfile',
+                            'ae_preflight.profile.os.path.isfile',
                             side_effect=mock_response
                         ):
                             os_info = profile.get_os_info(True)
@@ -247,16 +247,16 @@ class TestSystemProfile(TestCase):
 
         with mock.patch('tests.fixtures.command_returns.sys') as v_info:
             v_info.version_info = (3, 7, 0, 'final', 0)
-            with mock.patch('system_profile.profile.sys') as version:
+            with mock.patch('ae_preflight.profile.sys') as version:
                 version.version_info = (3, 7, 0, 'final', 0)
                 with mock.patch(
-                    'system_profile.profile.platform.linux_distribution'
+                    'ae_preflight.profile.platform.linux_distribution'
                 ) as os:
                     os.return_value = command_returns.distro_release_info(
                         'suse'
                     )
                     with mock.patch(
-                        'system_profile.profile.os.path.isfile',
+                        'ae_preflight.profile.os.path.isfile',
                         side_effect=mock_response
                     ):
                         os_info = profile.get_os_info(True)
@@ -279,16 +279,16 @@ class TestSystemProfile(TestCase):
 
         with mock.patch('tests.fixtures.command_returns.sys') as v_info:
             v_info.version_info = (3, 7, 0, 'final', 0)
-            with mock.patch('system_profile.profile.sys') as version:
+            with mock.patch('ae_preflight.profile.sys') as version:
                 version.version_info = (3, 7, 0, 'final', 0)
                 with mock.patch(
-                    'system_profile.profile.platform.linux_distribution'
+                    'ae_preflight.profile.platform.linux_distribution'
                 ) as os:
                     os.return_value = command_returns.distro_release_info(
                         'ubuntu'
                     )
                     with mock.patch(
-                        'system_profile.profile.os.path.isfile',
+                        'ae_preflight.profile.os.path.isfile',
                         side_effect=mock_response
                     ):
                         os_info = profile.get_os_info(True)
@@ -311,16 +311,16 @@ class TestSystemProfile(TestCase):
 
         with mock.patch('tests.fixtures.command_returns.sys') as v_info:
             v_info.version_info = (3, 8, 0, 'final', 0)
-            with mock.patch('system_profile.profile.sys') as version:
+            with mock.patch('ae_preflight.profile.sys') as version:
                 version.version_info = (3, 8, 0, 'final', 0)
                 with mock.patch(
-                    'system_profile.profile.distro.distro_release_info'
+                    'ae_preflight.profile.distro.distro_release_info'
                 ) as os:
                     os.return_value = command_returns.distro_release_info(
                         'ubuntu'
                     )
                     with mock.patch(
-                        'system_profile.profile.os.path.isfile',
+                        'ae_preflight.profile.os.path.isfile',
                         side_effect=mock_response
                     ):
                         os_info = profile.get_os_info(True)
@@ -349,7 +349,7 @@ class TestSystemProfile(TestCase):
             command_returns.getconf_nproc()
         ]
         with mock.patch(
-            'system_profile.profile.execute_command',
+            'ae_preflight.profile.execute_command',
             side_effect=mock_response
         ):
             results = profile.system_requirements(True)
@@ -401,15 +401,15 @@ class TestSystemProfile(TestCase):
             command_returns.psutil_disk_usage(),
         ]
         with mock.patch(
-            'system_profile.profile.psutil.disk_partitions'
+            'ae_preflight.profile.psutil.disk_partitions'
         ) as part:
             part.return_value = command_returns.psutil_disk_partitions()
             with mock.patch(
-                'system_profile.profile.psutil.disk_usage',
+                'ae_preflight.profile.psutil.disk_usage',
                 side_effect=mock_response
             ):
                 with mock.patch(
-                    'system_profile.profile.execute_command'
+                    'ae_preflight.profile.execute_command'
                 ) as command:
                     command.return_value = command_returns.xfs_info()
                     returns = profile.mounts_check(True)
@@ -460,15 +460,15 @@ class TestSystemProfile(TestCase):
             command_returns.psutil_disk_usage(),
         ]
         with mock.patch(
-            'system_profile.profile.psutil.disk_partitions'
+            'ae_preflight.profile.psutil.disk_partitions'
         ) as part:
             part.return_value = command_returns.psutil_disk_partitions()
             with mock.patch(
-                'system_profile.profile.psutil.disk_usage',
+                'ae_preflight.profile.psutil.disk_usage',
                 side_effect=mock_response
             ):
                 with mock.patch(
-                    'system_profile.profile.execute_command'
+                    'ae_preflight.profile.execute_command'
                 ) as command:
                     command.return_value = b''
                     returns = profile.mounts_check(True)
@@ -499,7 +499,7 @@ class TestSystemProfile(TestCase):
             '',
         ]
         with mock.patch(
-            'system_profile.profile.execute_command',
+            'ae_preflight.profile.execute_command',
             side_effect=mock_response
         ):
             returns = profile.check_modules('centos', '7.2', True)
@@ -541,7 +541,7 @@ class TestSystemProfile(TestCase):
             'getenforce': 'disabled',
             'config': 'enforcing'
         }
-        with mock.patch('system_profile.profile.execute_command') as cmd:
+        with mock.patch('ae_preflight.profile.execute_command') as cmd:
             cmd.return_value = b'Disabled'
             returns = profile.selinux('tests/fixtures/selinux_config', True)
 
@@ -563,10 +563,10 @@ class TestSystemProfile(TestCase):
             command_returns.get_pid(230, 'puppet-agent'),
             psutil.NoSuchProcess(9876)
         ]
-        with mock.patch('system_profile.profile.psutil.pids') as pids:
+        with mock.patch('ae_preflight.profile.psutil.pids') as pids:
             pids.return_value = temp_pids
             with mock.patch(
-                'system_profile.profile.psutil.Process',
+                'ae_preflight.profile.psutil.Process',
                 side_effect=mock_response
             ):
                 returns = profile.check_for_agents(True)
@@ -615,15 +615,15 @@ class TestSystemProfile(TestCase):
         ]
 
         with mock.patch(
-            'system_profile.profile.get_active_interfaces'
+            'ae_preflight.profile.get_active_interfaces'
         ) as iface:
             iface.return_value = ['eth0']
             with mock.patch(
-                'system_profile.profile.get_interface_ip_address'
+                'ae_preflight.profile.get_interface_ip_address'
             ) as ip:
                 ip.return_value = '1.1.1.1'
                 with mock.patch(
-                    'system_profile.profile.check_for_socket',
+                    'ae_preflight.profile.check_for_socket',
                     side_effect=mock_response
                 ):
                     returns = profile.check_open_ports(None, True)
@@ -654,11 +654,11 @@ class TestSystemProfile(TestCase):
         ]
 
         with mock.patch(
-            'system_profile.profile.get_interface_ip_address'
+            'ae_preflight.profile.get_interface_ip_address'
         ) as ip:
             ip.return_value = '1.1.1.1'
             with mock.patch(
-                'system_profile.profile.check_for_socket',
+                'ae_preflight.profile.check_for_socket',
                 side_effect=mock_response
             ):
                 returns = profile.check_open_ports('eth0', True)
@@ -672,7 +672,7 @@ class TestSystemProfile(TestCase):
     def test_open_ports_failure(self):
         expected_output = {}
         with mock.patch(
-            'system_profile.profile.get_active_interfaces'
+            'ae_preflight.profile.get_active_interfaces'
         ) as iface:
             iface.side_effect = IOError()
             returns = profile.check_open_ports(None, True)
@@ -721,7 +721,7 @@ class TestSystemProfile(TestCase):
             b'net.ipv4.ip_forward = 1'
         ]
         with mock.patch(
-            'system_profile.profile.execute_command',
+            'ae_preflight.profile.execute_command',
             side_effect=mock_response
         ):
             returns = profile.check_sysctl(True)
@@ -753,7 +753,7 @@ class TestSystemProfile(TestCase):
             b'fs.may_detach_mounts = 1'
         ]
         with mock.patch(
-            'system_profile.profile.execute_command',
+            'ae_preflight.profile.execute_command',
             side_effect=mock_response
         ):
             returns = profile.check_sysctl(True)
@@ -788,7 +788,7 @@ class TestSystemProfile(TestCase):
             b''
         ]
         with mock.patch(
-            'system_profile.profile.execute_command',
+            'ae_preflight.profile.execute_command',
             side_effect=mock_response
         ):
             returns = profile.check_sysctl(True)
@@ -810,7 +810,7 @@ class TestSystemProfile(TestCase):
             True, True, False, False, False, False, False, False, False
         ]
         with mock.patch(
-            'system_profile.profile.os.path.exists',
+            'ae_preflight.profile.os.path.exists',
             side_effect=mock_response
         ):
             returns = profile.check_dir_paths(True)
