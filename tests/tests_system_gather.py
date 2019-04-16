@@ -5,7 +5,6 @@ from system_profile import profile
 
 
 import system_profile
-import collections
 import psutil
 import sys
 
@@ -253,7 +252,9 @@ class TestSystemProfile(TestCase):
                 with mock.patch(
                     'system_profile.profile.platform.linux_distribution'
                 ) as os:
-                    os.return_value = command_returns.distro_release_info('suse')
+                    os.return_value = command_returns.distro_release_info(
+                        'suse'
+                    )
                     with mock.patch(
                         'system_profile.profile.os.path.isfile',
                         side_effect=mock_response

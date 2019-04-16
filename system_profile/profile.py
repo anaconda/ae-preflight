@@ -188,7 +188,8 @@ def get_os_info(verbose):
     # Ensure to use distro when running python 3.8
     if sys.version_info[:2] > (3, 7):
         linux_info = distro.distro_release_info()
-        # On SUSE distro_release_info gives an empty {} so get the info another way
+        # On SUSE distro_release_info gives an empty {}
+        # so get the info another way
         if linux_info == {}:
             linux_info = distro.os_release_info()
 
