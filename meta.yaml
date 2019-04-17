@@ -3,7 +3,7 @@
 
 package:
   name: ae_preflight
-  version: '0.1.3'
+  version: '0.1.4'
 
 source:
   path: .
