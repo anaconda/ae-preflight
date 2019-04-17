@@ -811,6 +811,7 @@ def process_results(system_info):
         module_result = 'PASS'
         f.write('\nModule Checks\n')
         f.write('Enabled:\n')
+        module_commands = []
         for module in modules.get('enabled', []):
             f.write('{0}\n'.format(module))
 
@@ -819,6 +820,11 @@ def process_results(system_info):
             f.write('\nMissing:\n')
             for module in modules.get('missing'):
                 f.write('{0}\n'.format(module))
+                module_commands.append(
+                    'echo -e "{0}" > /etc/modules-load.d/{0}.conf'.format(
+                        module
+                    )
+                )
 
             f.write(
                 '\nHOW TO\nTo enable a module you can do the following as '
@@ -826,6 +832,12 @@ def process_results(system_info):
                 'do the following as root:\necho -e "MODULE_NAME" > '
                 '/etc/modules-load.d/MODULE_NAME.conf\n'
             )
+            f.write(
+                '\nCOMMANDS\nYou can use the following commands to enable the '
+                'appropriate modules that are required.\n'
+            )
+            for command in module_commands:
+                f.write('{0}\n'.format(command))
 
         f.write('\nModule Result: {0}\n\n'.format(module_result))
         f.write('---------------------------------------------------------\n')
@@ -856,6 +868,8 @@ def process_results(system_info):
         sysctl_result = 'PASS'
         f.write('\nSysctl Settings\n')
         f.write('Enabled/Correct:\n')
+        sysctl_commands = []
+
         for setting in sysctl.get('enabled', []):
             f.write('{0}\n'.format(setting))
 
@@ -864,19 +878,29 @@ def process_results(system_info):
             f.write('\nIncorrect:\n')
             for setting, value in sysctl.get('incorrect').items():
                 f.write('{0} = {1}\n'.format(setting, value))
+                sysctl_commands.append(
+                    'echo -e "{0} = {1}" >> /etc/sysctl.d/10-{0}.conf'.format(
+                        setting,
+                        DEFAULT_SYSCTL.get(setting)
+                    )
+                )
 
         if len(sysctl.get('disabled', [])) > 0:
             sysctl_result = 'FAIL'
             f.write('\nDisabled:\n')
             for setting in sysctl.get('disabled'):
                 f.write('{0}\n'.format(setting))
+                sysctl_commands.append(
+                    'echo -e "{0} = 1" >> /etc/sysctl.d/10-{0}.conf'.format(
+                        setting
+                    )
+                )
 
         if len(sysctl.get('skipped', [])) > 0:
             f.write('\nSkipped:\n')
             for setting in sysctl.get('skipped'):
                 f.write('{0}\n'.format(setting))
 
-        f.write('\nSysctl Result: {0}\n\n'.format(sysctl_result))
         if sysctl_result == 'FAIL':
             overall_result = 'FAIL'
             f.write(
@@ -885,6 +909,15 @@ def process_results(system_info):
                 'do the following as root:\necho -e "SYSCTL_SETTING = 1" '
                 '>> /etc/sysctl.d/10-SYSCTL_SETTING.conf"\n\n'
             )
+
+            f.write(
+                'COMMANDS\nYou can use the following commands to enable the '
+                'appropriate settings that are required.\n'
+            )
+            for command in sysctl_commands:
+                f.write('{0}\n'.format(command))
+
+        f.write('\nSysctl Result: {0}\n\n'.format(sysctl_result))
 
         f.write('---------------------------------------------------------\n')
 
