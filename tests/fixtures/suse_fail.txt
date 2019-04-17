@@ -120,6 +120,13 @@ modprobe MODULE_NAME
 To persist through a reboot do the following as root:
 echo -e "MODULE_NAME" > /etc/modules-load.d/MODULE_NAME.conf
 
+COMMANDS
+You can use the following commands to enable the appropriate modules that are required.
+echo -e "iptable_filter" > /etc/modules-load.d/iptable_filter.conf
+echo -e "br_netfilter" > /etc/modules-load.d/br_netfilter.conf
+echo -e "iptable_nat" > /etc/modules-load.d/iptable_nat.conf
+echo -e "ebtables" > /etc/modules-load.d/ebtables.conf
+
 Module Result: FAIL
 
 ---------------------------------------------------------
@@ -147,14 +154,20 @@ fs.inotify.max_user_watches = 8192
 Skipped:
 fs.may_detach_mounts
 
-Sysctl Result: FAIL
-
 HOW TO
 To enable a setting you can do the following as root:
 sysctl -w SYSCTL_SETTING=1
 
 To persist through a reboot do the following as root:
 echo -e "SYSCTL_SETTING = 1" >> /etc/sysctl.d/10-SYSCTL_SETTING.conf"
+
+COMMANDS
+You can use the following commands to enable the appropriate settings that are required.
+echo -e "fs.inotify.max_user_watches = 1048576" >> /etc/sysctl.d/10-fs.inotify.max_user_watches.conf
+echo -e "net.bridge.bridge-nf-call-ip6tables = 1" >> /etc/sysctl.d/10-net.bridge.bridge-nf-call-ip6tables.conf
+echo -e "net.bridge.bridge-nf-call-iptables = 1" >> /etc/sysctl.d/10-net.bridge.bridge-nf-call-iptables.conf
+
+Sysctl Result: FAIL
 
 ---------------------------------------------------------
 
