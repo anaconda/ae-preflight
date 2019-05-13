@@ -112,6 +112,16 @@ No directories found
 
 Directory Result: PASS
 
+---------------------------------------------------------
+
+NTP Checks
+Using:        NTP
+Installed:    True
+Enabled:      True
+Synchronized: True
+
+NTP Result: PASS
+
 =========================================================
 
 Overall Result: PASS

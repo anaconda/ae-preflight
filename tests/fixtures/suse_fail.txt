@@ -180,9 +180,20 @@ Found directories:
 
 Directory Result: WARN
 
-Note: The directory check is looking for directories created
-or left over from processes, config management, and other
-services that have been found to cause issues with AE5.
+Note: The directory check is looking for directories created or left over from processes, config management, and other services that have been found to cause issues with AE5.
+
+---------------------------------------------------------
+
+NTP Checks
+Using:        None
+Installed:    chronyd
+Enabled:      False
+Synchronized: False
+
+Note: NTP is vitally important to a system, and will prevent time drift among the servers in the kubernetes cluster. Time drift has been known to cause issues with etcd, and ordered events. It is adivisable to install, setup, and synch all servers to a central time server.
+
+
+NTP Result: FAIL
 
 =========================================================
 
