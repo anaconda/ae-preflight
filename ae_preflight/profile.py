@@ -628,6 +628,7 @@ def main():
         args.verbose
     )
 
+    system_info['selinux'] = None
     if system_info.get('profile').get('based_on').lower() == 'rhel':
         system_info['selinux'] = selinux('/etc/selinux/config', args.verbose)
 
@@ -641,6 +642,7 @@ def main():
     system_info['sysctl'] = check_sysctl(args.verbose)
     system_info['dir_paths'] = check_dir_paths(args.verbose)
     system_info['ntp'] = check_for_ntp_synch(args.verbose)
+    overall_result = report.process_results(system_info)
     print('\nOverall Result: {0}'.format(overall_result))
     print(
         'To view details about the results a results.txt file has been '
