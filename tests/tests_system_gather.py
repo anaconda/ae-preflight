@@ -1,12 +1,17 @@
 
 from __future__ import absolute_import
+
+
+from .fixtures import reporting_returns
 from .fixtures import command_returns
 from ae_preflight import profile
 
 
 import ae_preflight
 import psutil
+import glob
 import sys
+import os
 
 
 if sys.version_info[:2] >= (2, 7):
@@ -26,7 +31,9 @@ class TestSystemProfile(TestCase):
         pass
 
     def tearDown(self):
-        pass
+        files = glob.glob('results.txt')
+        for item in files:
+            os.remove(item)
 
     def test_version(self):
         self.assertEquals(
@@ -819,4 +826,194 @@ class TestSystemProfile(TestCase):
             expected_output,
             returns,
             'Returned values did not match expected output'
+        )
+
+    # NTP checks
+    def test_ntp_enabled(self):
+        expected_output = {
+            'using': 'NTP',
+            'installed': True,
+            'enabled': True,
+            'synched': True
+        }
+        mock_response = mock.Mock()
+        mock_response.side_effect = [
+            b'/bin/ntpstat',
+            command_returns.systemd_ntp_chronyd_status(ntpd=True),
+            command_returns.timedatectl_status(synched=True)
+        ]
+        with mock.patch(
+            'ae_preflight.profile.execute_command',
+            side_effect=mock_response
+        ):
+            returns = profile.check_for_ntp_synch(True)
+
+        self.assertEquals(
+            expected_output,
+            returns,
+            'Returned values did not match expected output'
+        )
+
+    def test_chronyd_enabled(self):
+        expected_output = {
+            'using': 'chronyd',
+            'installed': True,
+            'enabled': True,
+            'synched': True
+        }
+        mock_response = mock.Mock()
+        mock_response.side_effect = [
+            b'',
+            b'/sbin/chronyc',
+            command_returns.systemd_ntp_chronyd_status(ntpd=False),
+            command_returns.timedatectl_status(synched=True)
+        ]
+        with mock.patch(
+            'ae_preflight.profile.execute_command',
+            side_effect=mock_response
+        ):
+            returns = profile.check_for_ntp_synch(True)
+
+        self.assertEquals(
+            expected_output,
+            returns,
+            'Returned values did not match expected output'
+        )
+
+    def test_ntp_disabled(self):
+        expected_output = {
+            'using': None,
+            'installed': 'NTP',
+            'enabled': False,
+            'synched': False
+        }
+        mock_response = mock.Mock()
+        mock_response.side_effect = [
+            b'/bin/ntpstat',
+            command_returns.systemd_not_running_status(),
+            b'',
+            command_returns.timedatectl_status(synched=False)
+        ]
+        with mock.patch(
+            'ae_preflight.profile.execute_command',
+            side_effect=mock_response
+        ):
+            returns = profile.check_for_ntp_synch(True)
+
+        self.assertEquals(
+            expected_output,
+            returns,
+            'Returned values did not match expected output'
+        )
+
+    def test_chronyd_disabled(self):
+        expected_output = {
+            'using': None,
+            'installed': 'chronyd',
+            'enabled': False,
+            'synched': False
+        }
+        mock_response = mock.Mock()
+        mock_response.side_effect = [
+            b'',
+            b'/sbin/chronyd',
+            command_returns.systemd_not_running_status(),
+            command_returns.timedatectl_status(synched=False)
+        ]
+        with mock.patch(
+            'ae_preflight.profile.execute_command',
+            side_effect=mock_response
+        ):
+            returns = profile.check_for_ntp_synch(True)
+
+        self.assertEquals(
+            expected_output,
+            returns,
+            'Returned values did not match expected output'
+        )
+
+    # Test main and ensure that things work
+    @mock.patch('ae_preflight.profile.argparse')
+    def test_main_full_test(self, mock_patch):
+        with mock.patch('ae_preflight.profile.get_os_info') as os:
+            os.return_value = reporting_returns.os_return('ubuntu')
+            with mock.patch(
+                'ae_preflight.profile.check_system_type'
+            ) as system:
+                system.return_value = reporting_returns.system_compatability()
+                with mock.patch(
+                    'ae_preflight.profile.system_requirements'
+                ) as req:
+                    req.return_value = reporting_returns.memory_cpu()
+                    with mock.patch(
+                        'ae_preflight.profile.mounts_check'
+                    ) as mount:
+                        mount.return_value = reporting_returns.mounts()
+                        with mock.patch(
+                            'ae_preflight.profile.inspect_resolv_conf'
+                        ) as resolv:
+                            resolv.return_value = (
+                                reporting_returns.resolv_conf()
+                            )
+                            with mock.patch(
+                                'ae_preflight.profile.check_open_ports'
+                            ) as port:
+                                port.return_value = (
+                                    reporting_returns.ports()
+                                )
+                                with mock.patch(
+                                    'ae_preflight.profile.check_for_agents'
+                                ) as agent:
+                                    agent.return_value = (
+                                        reporting_returns.agents()
+                                    )
+                                    with mock.patch(
+                                        'ae_preflight.profile.check_modules'
+                                    ) as module:
+                                        module.return_value = (
+                                            reporting_returns.modules()
+                                        )
+                                        with mock.patch(
+                                            'ae_preflight.profile.'
+                                            'check_sysctl'
+                                        ) as sysctl:
+                                            sysctl.return_value = (
+                                                reporting_returns.sysctl()
+                                            )
+                                            with mock.patch(
+                                                'ae_preflight.profile.'
+                                                'check_dir_paths'
+                                            ) as check_dir:
+                                                check_dir.return_value = (
+                                                    reporting_returns.check_dirs()  # noqa
+                                                )
+                                                with mock.patch(
+                                                    'ae_preflight.profile.'
+                                                    'check_for_ntp_synch'
+                                                ) as check_ntp:
+                                                    check_ntp.return_value = (
+                                                        reporting_returns.ntp_check('ntpd', test_pass=True)  # noqa
+                                                    )
+                                                    profile.main()
+
+        results_file = glob.glob('results.txt')
+        self.assertEqual(
+            len(results_file),
+            1,
+            'Did not find results file'
+        )
+        expected = []
+        with open('tests/fixtures/ubuntu_pass.txt', 'r') as ubuntu:
+            expected = ubuntu.readlines()
+
+        differences = []
+        with open('results.txt', 'r') as results:
+            for line in results:
+                if line not in expected:
+                    differences.append(line)
+
+        self.assertEquals(
+            differences,
+            [],
+            'Differences were found in the results from what is expected'
         )

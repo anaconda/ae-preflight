@@ -1,3 +1,8 @@
+
+from ae_preflight import defaults
+from ae_preflight import report
+
+
 from contextlib import closing
 from subprocess import Popen
 from subprocess import PIPE
@@ -23,82 +28,6 @@ try:
     import distro
 except Exception:
     pass
-
-
-OS_VALUES = {
-    'rhel': {
-        'versions': ['7.2', '7.3', '7.4', '7.5', '7.6'],
-    },
-    'debian': {
-        'versions': ['16.04'],
-    },
-    'suse': {
-        'versions': ['12 SP2', '12 SP3'],
-    }
-}
-DEFAULT_MODULES = [
-    'iptable_filter',
-    'br_netfilter',
-    'iptable_nat',
-    'ebtables',
-    'overlay'
-]
-MODULE_EXCEPTIONS = {
-    'rhel': {
-        '7.2': [
-            'iptable_filter',
-            'iptable_nat',
-            'ebtables',
-            'bridge'
-        ]
-    },
-    'centos': {
-        '7.2': [
-            'iptable_filter',
-            'iptable_nat',
-            'ebtables',
-            'overlay',
-            'bridge'
-        ]
-    }
-}
-DEFAULT_SYSCTL = {
-    'settings': [
-        'net.bridge.bridge-nf-call-ip6tables',
-        'net.bridge.bridge-nf-call-iptables',
-        'fs.inotify.max_user_watches',
-        'fs.may_detach_mounts',
-        'net.ipv4.ip_forward'
-    ],
-    'net.bridge.bridge-nf-call-ip6tables': '1',
-    'net.bridge.bridge-nf-call-iptables': '1',
-    'fs.inotify.max_user_watches': '1048576',
-    'fs.may_detach_mounts': '1',
-    'net.ipv4.ip_forward': '1'
-}
-OPEN_PORTS = [80, 443, 32009, 61009, 65535]
-FILE_TYPES = ['xfs', 'ext4']
-RUNNING_AGENTS = [
-    'salt',
-    'chef',
-    'puppet',
-    'redcloak',
-    'cylancesvc',
-    'sisidsdaemon',
-    'sisipsdaemon',
-    'sisipsutildaemon'
-]
-DIR_PATHS = [
-    '/etc/chef',
-    '/etc/salt',
-    '/etc/puppet',
-    '/etc/ansible',
-    '/var/cfengine',
-    '/opt/symantec',
-    '/var/lib/puppet',
-    '/usr/local/etc/salt',
-    '/var/opt/secureworks'
-]
 
 
 def execute_command(command, verbose):
@@ -338,15 +267,15 @@ def check_modules(distro, version, verbose):
     """
     Check for modules and ensure things are enabled
     """
-    modules = DEFAULT_MODULES
+    modules = defaults.DEFAULT_MODULES
     if verbose:
         print('Checking for enabled modules based on distro and version')
 
     if (
-        MODULE_EXCEPTIONS.get(distro) and
-        MODULE_EXCEPTIONS.get(distro).get(version)
+        defaults.MODULE_EXCEPTIONS.get(distro) and
+        defaults.MODULE_EXCEPTIONS.get(distro).get(version)
     ):
-        modules = MODULE_EXCEPTIONS.get(distro).get(version)
+        modules = defaults.MODULE_EXCEPTIONS.get(distro).get(version)
 
     missing = []
     enabled = []
@@ -375,9 +304,9 @@ def check_system_type(based_on, version, verbose):
     if verbose:
         print('Checking OS compatability')
 
-    if OS_VALUES.get(based_on):
+    if defaults.OS_VALUES.get(based_on):
         supported['OS'] = 'PASS'
-        if version in OS_VALUES.get(based_on).get('versions'):
+        if version in defaults.OS_VALUES.get(based_on).get('versions'):
             supported['version'] = 'PASS'
 
     return supported
@@ -421,7 +350,7 @@ def check_for_agents(verbose):
     for pid in all_pids:
         try:
             temp_process = psutil.Process(pid)
-            for agent in RUNNING_AGENTS:
+            for agent in defaults.RUNNING_AGENTS:
                 if (
                     agent in temp_process.name().lower() and
                     temp_process.name() not in found_agents
@@ -486,7 +415,7 @@ def check_open_ports(interface, verbose):
     for interface in interfaces:
         ip_address = get_interface_ip_address(interface, verbose)
         open_ports[interface] = {}
-        for port in OPEN_PORTS:
+        for port in defaults.OPEN_PORTS:
             open_ports[interface][str(port)] = (
                 check_for_socket(ip_address, port, verbose)
             )
@@ -524,7 +453,7 @@ def check_sysctl(verbose):
         ['sysctl', '-a'],
         verbose
     ).decode('utf-8')
-    for setting in DEFAULT_SYSCTL.get('settings'):
+    for setting in defaults.DEFAULT_SYSCTL.get('settings'):
         if re.search(setting, all_sysctl_settings):
             temp_result = execute_command(
                 ['sysctl', setting],
@@ -532,9 +461,9 @@ def check_sysctl(verbose):
             ).decode('utf-8')
             if temp_result:
                 result = temp_result.split('=')[1].strip()
-                if str(result) == DEFAULT_SYSCTL.get(setting):
+                if str(result) == defaults.DEFAULT_SYSCTL.get(setting):
                     enabled.append(setting)
-                elif DEFAULT_SYSCTL.get(setting) not in ['1', '0']:
+                elif defaults.DEFAULT_SYSCTL.get(setting) not in ['1', '0']:
                     incorrect[setting] = result
                 else:
                     disabled.append(setting)
@@ -557,400 +486,91 @@ def check_dir_paths(verbose):
     if verbose:
         print('Checking for directories on system')
 
-    for dir in DIR_PATHS:
+    for dir in defaults.DIR_PATHS:
         if os.path.exists(dir):
             dir_paths.append(dir)
 
     return dir_paths
 
 
-def process_results(system_info):
-    """
-    Layout the report file and print out an overall pass/warn/fail for each
-    section that was checked
-    """
-    overall_result = 'PASS'
-    with open('results.txt', 'w+') as f:
-        f.write('=========================================================\n')
-        f.write('                SYSTEM PROFILE RESULTS                   \n')
-        f.write('=========================================================\n')
+def check_for_ntp_synch(verbose):
+    ntp_info = {
+        'using': None,
+        'installed': False,
+        'enabled': False,
+        'synched': False
+    }
 
-        # Compatability and basic system info
-        profile = system_info['profile']
-        f.write('\nOS Information\n')
-        f.write('Name:     {0}\n'.format(profile.get('distribution').title()))
-        f.write('Version:  {0}\n'.format(profile.get('version')))
-        f.write('Based On: {0}\n\n'.format(profile.get('based_on')))
-        f.write('---------------------------------------------------------\n')
-
-        compatability = system_info['compatability']
-        f.write('\nCompatability\n')
-        f.write('Supported OS:      {0}\n'.format(compatability['OS']))
-        f.write('Supported Version: {0}\n\n'.format(compatability['version']))
-        if compatability['OS'] == 'FAIL' or compatability['version'] == 'FAIL':
-            overall_result = 'FAIL'
-
-        f.write('---------------------------------------------------------\n')
-
-        resources = system_info['resources']
-        memory = resources.get('memory')
-        f.write('\nMemory\n')
-        f.write('Minimum: {0}\n'.format(memory.get('minimum')))
-        f.write('Actual:  {0}\n'.format(memory.get('actual')))
-        memory_result = 'FAIL'
-        if memory.get('actual') >= memory.get('minimum'):
-            memory_result = 'PASS'
-
-        f.write('Memory:  {0}\n\n'.format(memory_result))
-        if memory_result == 'FAIL':
-            overall_result = 'FAIL'
-
-        f.write('---------------------------------------------------------\n')
-
-        # Cores
-        cores = resources.get('cpu_cores')
-        core_result = 'FAIL'
-        f.write('\nCPU Cores\n')
-        f.write('Minimum:  {0}\n'.format(cores.get('minimum')))
-        f.write('Actual:   {0}\n'.format(cores.get('actual')))
-        if cores.get('actual') >= cores.get('minimum'):
-            core_result = 'PASS'
-
-        f.write('CPU Core: {0}\n\n'.format(core_result))
-        if core_result == 'FAIL':
-            overall_result = 'FAIL'
-
-        f.write('---------------------------------------------------------\n')
-
-        # Mounts
-        mounts = system_info['mounts']
-        f.write('\nMounts\n')
-        overall_mount_result = 'WARN'
-        ftype_incorrect = False
-        for mount, mount_data in mounts.items():
-            mount_result = 'WARN'
-            f.write('Mount Point:  {0}\n'.format(mount))
-            f.write(
-                'Minimum Size: {0} GB\n'.format(
-                    mount_data.get('recommended')
-                )
-            )
-            f.write(
-                'Total:        {0} GB\n'.format(mount_data.get('total'))
-            )
-
-            f.write(
-                'Free:         {0} GB\n'.format(mount_data.get('free'))
-            )
-            f.write(
-                'File System:  {0}\n'.format(
-                    mount_data.get('file_system')
-                )
-            )
-            if mount_data.get('file_system') == 'xfs':
-                f.write(
-                    'Ftype:        {0}\n'.format(mount_data.get('ftype'))
-                )
-
-            # Check to ensure the free space and file system pass
-            if (
-                mount_data.get('free') >= mount_data.get('recommended') and
-                mount_data.get('file_system') in FILE_TYPES
-            ):
-                # Check for xfs and if not then pass
-                if mount_data.get('file_system') == 'xfs':
-                    # Ensure that the ftype was set correctly
-                    if mount_data.get('ftype') == '1':
-                        mount_result = 'PASS'
-                    else:
-                        ftype_incorrect = True
-                else:
-                    mount_result = 'PASS'
-
-            f.write('Mount Result: {0}\n\n'.format(mount_result))
-            overall_mount_result = mount_result
-
-        if overall_mount_result == 'WARN':
-            f.write(
-                'Note: The free space may have fallen below specific size '
-                'requirements due to reserve space and/or small files placed '
-                'on the mount after formatting. Confirm that the size is '
-                'close to the requested size before proceeding.\n\n'
-            )
-            if ftype_incorrect:
-                f.write(
-                    'Note: XFS file system should be formatted with the '
-                    'option ftype=1 in order to support the overlay driver '
-                    ' for docker. In order to fix the issue the file system '
-                    'will need to be recreated and can be done using the '
-                    'following example:\nmkfs.xfs -n ftype=1 '
-                    '/path/to/your/device\n\n'
-                )
-
-        if overall_result == 'PASS' and overall_mount_result == 'WARN':
-            overall_result = 'WARN'
-
-        f.write('---------------------------------------------------------\n')
-
-        # Selinux
-        if system_info.get('profile').get('based_on').lower() == 'rhel':
-            selinux = system_info['selinux']
-            selinux_result = 'FAIL'
-            f.write('\nSelinux Status\n')
-            f.write(
-                'Current Status: {0}\n'.format(
-                    selinux.get('getenforce').title()
-                )
-            )
-            f.write(
-                'Config Setting: {0}\n'.format(selinux.get('config').title())
-            )
-
-            if (
-                selinux.get('config').lower() != 'enforcing' and
-                selinux.get('getenforce').lower() != 'enforcing'
-            ):
-                selinux_result = 'PASS'
-
-            f.write('Selinux Result: {0}\n\n'.format(selinux_result))
-            if selinux_result == 'FAIL':
-                overall_result = 'FAIL'
-        else:
-            f.write('\nSelinux Result: SKIPPED\n\n')
-
-        f.write('---------------------------------------------------------\n')
-
-        # /etc/resolv.conf
-        resolv = system_info['resolv']
-        options_result = 'PASS'
-        search_domain_result = 'FAIL'
-        f.write('\n/etc/resolv.conf Check\n')
-        f.write(
-            'Search Domains: {0}\n'.format(
-                len(resolv.get('search_domains', []))
-            )
+    # Check for NTP status and see if things are enabled
+    check_for_ntp = execute_command(
+        ['which', 'ntpstat'],
+        verbose
+    ).decode('utf-8')
+    if check_for_ntp not in ['', None]:
+        ntp_info['installed'] = True
+        sysctl_ntp_status = execute_command(
+            ['systemctl', 'status', 'ntpd'],
+            verbose
+        ).decode('utf-8')
+        ntpd_status = re.search(
+            r'Active\:\sactive\s\(running\)',
+            sysctl_ntp_status
         )
-        if len(resolv.get('search_domains', [])) <= 3:
-            search_domain_result = 'PASS'
+        if ntpd_status:
+            ntp_info['using'] = 'NTP'
+        else:
+            ntp_info['installed'] = 'NTP'
 
-        for option in resolv.get('options', []):
-            f.write('Added Option: {0}\n'.format(option))
-            if 'rotate' in option:
-                f.write(
-                    'WARNING: rotate option has been known to create issues '
-                    'on install and is recommended to comment this out\n'
-                )
-                options_result = 'WARN'
+    # If NTP is up and running do not check for chronyd
+    if ntp_info.get('using') != 'NTP':
+        # Check for chronyd status and ensure things are enabled
+        check_for_chronyd = execute_command(
+            ['which', 'chronyc'],
+            verbose
+        ).decode('utf-8')
+        if check_for_chronyd not in ['', None]:
+            ntp_info['installed'] = True
+            sysctl_chronyd_status = execute_command(
+                ['systemctl', 'status', 'chronyd'],
+                verbose
+            ).decode('utf-8')
+            chronyd_status = re.search(
+                r'Active\:\sactive\s\(running\)',
+                sysctl_chronyd_status
+            )
+            if chronyd_status:
+                ntp_info['using'] = 'chronyd'
+            else:
+                ntp_info['installed'] = 'chronyd'
 
-        f.write('\nSearch Domain Result: {0}\n'.format(search_domain_result))
-        f.write('Options Result: {0}\n\n'.format(options_result))
-        if search_domain_result == 'FAIL':
-            overall_result = 'FAIL'
+    # If ntpd or chronyd is installed and running
+    if ntp_info.get('installed'):
+        timedatectl_status = execute_command(
+            ['timedatectl', 'status'],
+            verbose
+        ).decode('utf-8')
 
-        if overall_result == 'PASS' and options_result == 'WARN':
-            overall_result = 'WARN'
-
-        f.write('---------------------------------------------------------\n')
-
-        # Ports
-        ports = system_info['ports']
-        f.write('\nPort Check\n')
-        f.write(
-            'Note: This test will check all interfaces for open ports and '
-            'each interface may not apply to the installation\n'
+        enabled_status = 'no'
+        temp_enabled = re.search(
+            r'NTP enabled\:\s(.+?)\s+',
+            timedatectl_status
         )
-        for interface, interface_data in ports.items():
-            interface_result = 'PASS'
-            f.write('\nInterface {0}:\n'.format(interface))
-            for port, port_status in interface_data.items():
-                f.write(
-                    'Port: {0} - {1}\n'.format(
-                        port,
-                        port_status.title()
-                    )
-                )
-                if port_status == 'closed':
-                    interface_result = 'WARN'
+        if temp_enabled:
+            enabled_status = temp_enabled.group(1).strip().lower()
+            if enabled_status == 'yes':
+                ntp_info['enabled'] = True
 
-            f.write(
-                '\n{0} Result: {1}\n\n'.format(
-                    interface,
-                    interface_result
-                )
-            )
-            if overall_result == 'PASS' and interface_result == 'WARN':
-                overall_result = 'WARN'
+        synched_status = 'no'
+        temp_synched = re.search(
+            r'NTP synchronized\:\s(.+?)\s+',
+            timedatectl_status
+        )
+        if temp_synched:
+            synched_status = temp_synched.group(1).strip().lower()
+            if synched_status == 'yes':
+                ntp_info['synched'] = True
 
-        f.write('---------------------------------------------------------\n')
-
-        # Agents
-        agents = system_info['agents']
-        agent_result = 'PASS'
-        f.write('\nAgent Checks\n')
-        if len(agents.get('running', [])) > 0:
-            agent_result = 'WARN'
-            for agent in agents.get('running'):
-                f.write('Running: {0}\n'.format(agent))
-
-            f.write(
-                'WARNING: These agents have been known to cause issues with '
-                'the system as it could block traffic, or change settings '
-                'that are needed by Anaconda Enterprise to function properly\n'
-            )
-        else:
-            f.write('No running agents found\n')
-
-        f.write('\nAgent Result: {0}\n\n'.format(agent_result))
-        if overall_result == 'PASS' and agent_result == 'WARN':
-            overall_result = 'WARN'
-
-        f.write('---------------------------------------------------------\n')
-
-        # Modules
-        modules = system_info['modules']
-        module_result = 'PASS'
-        f.write('\nModule Checks\n')
-        f.write('Enabled:\n')
-        module_commands = []
-        for module in modules.get('enabled', []):
-            f.write('{0}\n'.format(module))
-
-        if len(modules.get('missing', [])) > 0:
-            module_result = 'FAIL'
-            f.write('\nMissing:\n')
-            for module in modules.get('missing'):
-                f.write('{0}\n'.format(module))
-                module_commands.append(
-                    'echo -e "{0}" > /etc/modules-load.d/{0}.conf'.format(
-                        module
-                    )
-                )
-
-            f.write(
-                '\nHOW TO\nTo enable a module you can do the following as '
-                'root:\nmodprobe MODULE_NAME\n\nTo persist through a reboot '
-                'do the following as root:\necho -e "MODULE_NAME" > '
-                '/etc/modules-load.d/MODULE_NAME.conf\n'
-            )
-            f.write(
-                '\nCOMMANDS\nYou can use the following commands to enable the '
-                'appropriate modules that are required.\n'
-            )
-            for command in module_commands:
-                f.write('{0}\n'.format(command))
-
-        f.write('\nModule Result: {0}\n\n'.format(module_result))
-        f.write('---------------------------------------------------------\n')
-
-        # Suse Infinity
-        if system_info.get('profile').get('distribution').lower() == 'sles':
-            infinity = system_info['infinity_set']
-            infinity_result = 'FAIL'
-            f.write('\nInfinty Max Tasks\n')
-            if infinity:
-                infinity_result = 'PASS'
-
-            f.write('Result: {0}\n\n'.format(infinity_result))
-            if infinity_result == 'FAIL':
-                overall_result = 'FAIL'
-                f.write(
-                    'HOW TO\nTo enable infinity on SUSE then add the '
-                    'following to /etc/systemd/system.conf:\n'
-                    'DefaultTasksMax=infinity\n\n'
-                )
-
-            f.write(
-                '---------------------------------------------------------\n'
-            )
-
-        # sysctl
-        sysctl = system_info['sysctl']
-        sysctl_result = 'PASS'
-        f.write('\nSysctl Settings\n')
-        f.write('Enabled/Correct:\n')
-        sysctl_commands = []
-
-        for setting in sysctl.get('enabled', []):
-            f.write('{0}\n'.format(setting))
-
-        if len(sysctl.get('incorrect', {})) > 0:
-            sysctl_result = 'FAIL'
-            f.write('\nIncorrect:\n')
-            for setting, value in sysctl.get('incorrect').items():
-                f.write('{0} = {1}\n'.format(setting, value))
-                sysctl_commands.append(
-                    'echo -e "{0} = {1}" >> /etc/sysctl.d/10-{0}.conf'.format(
-                        setting,
-                        DEFAULT_SYSCTL.get(setting)
-                    )
-                )
-
-        if len(sysctl.get('disabled', [])) > 0:
-            sysctl_result = 'FAIL'
-            f.write('\nDisabled:\n')
-            for setting in sysctl.get('disabled'):
-                f.write('{0}\n'.format(setting))
-                sysctl_commands.append(
-                    'echo -e "{0} = 1" >> /etc/sysctl.d/10-{0}.conf'.format(
-                        setting
-                    )
-                )
-
-        if len(sysctl.get('skipped', [])) > 0:
-            f.write('\nSkipped:\n')
-            for setting in sysctl.get('skipped'):
-                f.write('{0}\n'.format(setting))
-
-        if sysctl_result == 'FAIL':
-            overall_result = 'FAIL'
-            f.write(
-                'HOW TO\nTo enable a setting you can do the following as root:'
-                '\nsysctl -w SYSCTL_SETTING=1\n\nTo persist through a reboot '
-                'do the following as root:\necho -e "SYSCTL_SETTING = 1" '
-                '>> /etc/sysctl.d/10-SYSCTL_SETTING.conf"\n\n'
-            )
-
-            f.write(
-                'COMMANDS\nYou can use the following commands to enable the '
-                'appropriate settings that are required.\n'
-            )
-            for command in sysctl_commands:
-                f.write('{0}\n'.format(command))
-
-        f.write('\nSysctl Result: {0}\n\n'.format(sysctl_result))
-
-        f.write('---------------------------------------------------------\n')
-
-        # dir paths
-        dir_paths = system_info['dir_paths']
-        path_result = 'PASS'
-        f.write('\nDirectory Checks\n')
-
-        if len(dir_paths) > 0:
-            f.write('Found directories:\n')
-            path_result = 'WARN'
-            for dir_path in dir_paths:
-                f.write('{0}\n'.format(dir_path))
-        else:
-            f.write('No directories found\n')
-
-        if path_result == 'WARN':
-            f.write(
-                'Note: The directory check is looking for directories '
-                'created\nor left over from processes, config management, '
-                'and other\nservices that have been found to cause issues '
-                'with AE5.\n\n'
-            )
-
-        f.write('\nDirectory Result: {0}\n\n'.format(path_result))
-
-        f.write('=========================================================\n')
-
-        f.write('\nOverall Result: {0}\n\n'.format(overall_result))
-
-        f.write('=========================================================\n')
-
-    return overall_result
+    return ntp_info
 
 
 def handle_arguments():
@@ -987,6 +607,7 @@ def main():
     """
     system_info = {}
     args = handle_arguments()
+
     system_info['profile'] = get_os_info(args.verbose)
     system_info['compatability'] = check_system_type(
         system_info.get('profile').get('based_on'),
@@ -1007,6 +628,7 @@ def main():
         args.verbose
     )
 
+    system_info['selinux'] = None
     if system_info.get('profile').get('based_on').lower() == 'rhel':
         system_info['selinux'] = selinux('/etc/selinux/config', args.verbose)
 
@@ -1019,7 +641,8 @@ def main():
 
     system_info['sysctl'] = check_sysctl(args.verbose)
     system_info['dir_paths'] = check_dir_paths(args.verbose)
-    overall_result = process_results(system_info)
+    system_info['ntp'] = check_for_ntp_synch(args.verbose)
+    overall_result = report.process_results(system_info)
     print('\nOverall Result: {0}'.format(overall_result))
     print(
         'To view details about the results a results.txt file has been '

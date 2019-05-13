@@ -254,3 +254,36 @@ def check_dirs(test_pass=True):
             '/etc/salt',
             '/etc/puppet'
         ]
+
+
+def ntp_check(process, test_pass=True):
+    if process == 'ntpd':
+        if test_pass:
+            return {
+                'using': 'NTP',
+                'installed': True,
+                'enabled': True,
+                'synched': True
+            }
+        else:
+            return {
+                'using': None,
+                'installed': 'ntpd',
+                'enabled': False,
+                'synched': False
+            }
+    elif process == 'chronyd':
+        if test_pass:
+            return {
+                'using': 'chronyd',
+                'installed': True,
+                'enabled': True,
+                'synched': True
+            }
+        else:
+            return {
+                'using': None,
+                'installed': 'chronyd',
+                'enabled': False,
+                'synched': False
+            }

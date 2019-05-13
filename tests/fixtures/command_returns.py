@@ -172,6 +172,58 @@ def all_sysctl_return(skipped=False):
         ).encode('utf-8')
 
 
+def timedatectl_status(synched=True):
+    if synched:
+        return (
+            'Local time: Mon 2019-05-13 13:17:16 UTC\n'
+            'Universal time: Mon 2019-05-13 13:17:16 UTC\n'
+            'RTC time: Mon 2019-05-13 13:17:16\n'
+            'Time zone: UTC (UTC, +0000)\n'
+            'NTP enabled: yes\n'
+            'NTP synchronized: yes\n'
+            'RTC in local TZ: no\n'
+            'DST active: n/a\n'
+        ).encode('utf-8')
+    else:
+        return (
+            'Local time: Mon 2019-05-13 13:17:16 UTC\n'
+            'Universal time: Mon 2019-05-13 13:17:16 UTC\n'
+            'RTC time: Mon 2019-05-13 13:17:16\n'
+            'Time zone: UTC (UTC, +0000)\n'
+            'NTP enabled: no\n'
+            'NTP synchronized: no\n'
+            'RTC in local TZ: no\n'
+            'DST active: n/a\n'
+        ).encode('utf-8')
+
+
+def systemd_ntp_chronyd_status(ntpd=True):
+    if ntpd:
+        return (
+            'ntpd.service - Network Time Service\n'
+            'Loaded: loaded (/usr/lib/systemd/system/ntpd.service; '
+            'disabled; vendor preset: disabled)\n'
+            'Active: active (running) since Mon 2019-05-13 15:06:30 UTC;\n'
+        ).encode('utf-8')
+    else:
+        return (
+            'chronyd.service - NTP client/server\n'
+            'Loaded: loaded (/usr/lib/systemd/system/chronyd.service; '
+            'enabled; vendor preset: enabled)\n'
+            'Active: active (running) since Mon 2019-05-13 '
+            '15:54:02 UTC; 4s ago\nDocs: man:chronyd(8)'
+        ).encode('utf-8')
+
+
+def systemd_not_running_status():
+    return (
+        'ntpd.service - Network Time Service\n'
+        'Loaded: loaded (/usr/lib/systemd/system/ntpd.service; '
+        'disabled; vendor preset: disabled)\n'
+        'Active: inactive (dead) since Mon 2019-05-13 15:53:56 UTC;\n'
+    ).encode('utf-8')
+
+
 def get_pid(pid, name):
     class PidInfoTest():
         def __init__(self, pid, name):
