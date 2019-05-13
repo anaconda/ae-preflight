@@ -1,3 +1,8 @@
+
+from ae_preflight import defaults
+from ae_preflight import report
+
+
 from contextlib import closing
 from subprocess import Popen
 from subprocess import PIPE
@@ -23,82 +28,6 @@ try:
     import distro
 except Exception:
     pass
-
-
-OS_VALUES = {
-    'rhel': {
-        'versions': ['7.2', '7.3', '7.4', '7.5', '7.6'],
-    },
-    'debian': {
-        'versions': ['16.04'],
-    },
-    'suse': {
-        'versions': ['12 SP2', '12 SP3'],
-    }
-}
-DEFAULT_MODULES = [
-    'iptable_filter',
-    'br_netfilter',
-    'iptable_nat',
-    'ebtables',
-    'overlay'
-]
-MODULE_EXCEPTIONS = {
-    'rhel': {
-        '7.2': [
-            'iptable_filter',
-            'iptable_nat',
-            'ebtables',
-            'bridge'
-        ]
-    },
-    'centos': {
-        '7.2': [
-            'iptable_filter',
-            'iptable_nat',
-            'ebtables',
-            'overlay',
-            'bridge'
-        ]
-    }
-}
-DEFAULT_SYSCTL = {
-    'settings': [
-        'net.bridge.bridge-nf-call-ip6tables',
-        'net.bridge.bridge-nf-call-iptables',
-        'fs.inotify.max_user_watches',
-        'fs.may_detach_mounts',
-        'net.ipv4.ip_forward'
-    ],
-    'net.bridge.bridge-nf-call-ip6tables': '1',
-    'net.bridge.bridge-nf-call-iptables': '1',
-    'fs.inotify.max_user_watches': '1048576',
-    'fs.may_detach_mounts': '1',
-    'net.ipv4.ip_forward': '1'
-}
-OPEN_PORTS = [80, 443, 32009, 61009, 65535]
-FILE_TYPES = ['xfs', 'ext4']
-RUNNING_AGENTS = [
-    'salt',
-    'chef',
-    'puppet',
-    'redcloak',
-    'cylancesvc',
-    'sisidsdaemon',
-    'sisipsdaemon',
-    'sisipsutildaemon'
-]
-DIR_PATHS = [
-    '/etc/chef',
-    '/etc/salt',
-    '/etc/puppet',
-    '/etc/ansible',
-    '/var/cfengine',
-    '/opt/symantec',
-    '/var/lib/puppet',
-    '/usr/local/etc/salt',
-    '/var/opt/secureworks'
-]
 
 
 def execute_command(command, verbose):
@@ -338,15 +267,15 @@ def check_modules(distro, version, verbose):
     """
     Check for modules and ensure things are enabled
     """
-    modules = DEFAULT_MODULES
+    modules = defaults.DEFAULT_MODULES
     if verbose:
         print('Checking for enabled modules based on distro and version')
 
     if (
-        MODULE_EXCEPTIONS.get(distro) and
-        MODULE_EXCEPTIONS.get(distro).get(version)
+        defaults.MODULE_EXCEPTIONS.get(distro) and
+        defaults.MODULE_EXCEPTIONS.get(distro).get(version)
     ):
-        modules = MODULE_EXCEPTIONS.get(distro).get(version)
+        modules = defaults.MODULE_EXCEPTIONS.get(distro).get(version)
 
     missing = []
     enabled = []
@@ -375,9 +304,9 @@ def check_system_type(based_on, version, verbose):
     if verbose:
         print('Checking OS compatability')
 
-    if OS_VALUES.get(based_on):
+    if defaults.OS_VALUES.get(based_on):
         supported['OS'] = 'PASS'
-        if version in OS_VALUES.get(based_on).get('versions'):
+        if version in defaults.OS_VALUES.get(based_on).get('versions'):
             supported['version'] = 'PASS'
 
     return supported
@@ -421,7 +350,7 @@ def check_for_agents(verbose):
     for pid in all_pids:
         try:
             temp_process = psutil.Process(pid)
-            for agent in RUNNING_AGENTS:
+            for agent in defaults.RUNNING_AGENTS:
                 if (
                     agent in temp_process.name().lower() and
                     temp_process.name() not in found_agents
@@ -486,7 +415,7 @@ def check_open_ports(interface, verbose):
     for interface in interfaces:
         ip_address = get_interface_ip_address(interface, verbose)
         open_ports[interface] = {}
-        for port in OPEN_PORTS:
+        for port in defaults.OPEN_PORTS:
             open_ports[interface][str(port)] = (
                 check_for_socket(ip_address, port, verbose)
             )
@@ -524,7 +453,7 @@ def check_sysctl(verbose):
         ['sysctl', '-a'],
         verbose
     ).decode('utf-8')
-    for setting in DEFAULT_SYSCTL.get('settings'):
+    for setting in defaults.DEFAULT_SYSCTL.get('settings'):
         if re.search(setting, all_sysctl_settings):
             temp_result = execute_command(
                 ['sysctl', setting],
@@ -532,9 +461,9 @@ def check_sysctl(verbose):
             ).decode('utf-8')
             if temp_result:
                 result = temp_result.split('=')[1].strip()
-                if str(result) == DEFAULT_SYSCTL.get(setting):
+                if str(result) == defaults.DEFAULT_SYSCTL.get(setting):
                     enabled.append(setting)
-                elif DEFAULT_SYSCTL.get(setting) not in ['1', '0']:
+                elif defaults.DEFAULT_SYSCTL.get(setting) not in ['1', '0']:
                     incorrect[setting] = result
                 else:
                     disabled.append(setting)
@@ -557,7 +486,7 @@ def check_dir_paths(verbose):
     if verbose:
         print('Checking for directories on system')
 
-    for dir in DIR_PATHS:
+    for dir in defaults.DIR_PATHS:
         if os.path.exists(dir):
             dir_paths.append(dir)
 
@@ -987,6 +916,7 @@ def main():
     """
     system_info = {}
     args = handle_arguments()
+
     system_info['profile'] = get_os_info(args.verbose)
     system_info['compatability'] = check_system_type(
         system_info.get('profile').get('based_on'),
