@@ -197,21 +197,28 @@ def timedatectl_status(synched=True):
         ).encode('utf-8')
 
 
-def systemd_ntp_chronyd_status(ntpd=True):
-    if ntpd:
+def systemd_ntp_chronyd_status(service):
+    if service == 'ntpd':
         return (
             'ntpd.service - Network Time Service\n'
             'Loaded: loaded (/usr/lib/systemd/system/ntpd.service; '
             'disabled; vendor preset: disabled)\n'
             'Active: active (running) since Mon 2019-05-13 15:06:30 UTC;\n'
         ).encode('utf-8')
-    else:
+    elif service == 'chronyd':
         return (
             'chronyd.service - NTP client/server\n'
             'Loaded: loaded (/usr/lib/systemd/system/chronyd.service; '
             'enabled; vendor preset: enabled)\n'
             'Active: active (running) since Mon 2019-05-13 '
             '15:54:02 UTC; 4s ago\nDocs: man:chronyd(8)'
+        ).encode('utf-8')
+    elif service == 'timesyncd':
+        return (
+            'systemd-timesyncd.service - Network Time Synchronization\n'
+            'Loaded: loaded (/lib/systemd/system/systemd-timesyncd.service;\n'
+            'Drop-In: /lib/systemd/system/systemd-timesyncd.service.d\n'
+            'Active: active (running) since Tue 2019-05-14 13:58:21 UTC;\n'
         ).encode('utf-8')
 
 

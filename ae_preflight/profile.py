@@ -525,48 +525,27 @@ def check_for_ntp_synch(verbose):
         'enabled': False,
         'synched': False
     }
-
-    # Check for NTP status and see if things are enabled
-    check_for_ntp = execute_command(
-        ['which', 'ntpstat'],
-        verbose
-    ).decode('utf-8')
-    if check_for_ntp not in ['', None]:
-        ntp_info['installed'] = True
-        sysctl_ntp_status = execute_command(
-            ['systemctl', 'status', 'ntpd'],
+    for service in defaults.TIME_SERVICES.get('services'):
+        check_for_service = execute_command(
+            defaults.TIME_SERVICES.get(service),
             verbose
         ).decode('utf-8')
-        ntpd_status = re.search(
-            r'Active\:\sactive\s\(running\)',
-            sysctl_ntp_status
-        )
-        if ntpd_status:
-            ntp_info['using'] = 'NTP'
-        else:
-            ntp_info['installed'] = 'NTP'
-
-    # If NTP is up and running do not check for chronyd
-    if ntp_info.get('using') != 'NTP':
-        # Check for chronyd status and ensure things are enabled
-        check_for_chronyd = execute_command(
-            ['which', 'chronyc'],
-            verbose
-        ).decode('utf-8')
-        if check_for_chronyd not in ['', None]:
+        if check_for_service not in ['', None]:
             ntp_info['installed'] = True
-            sysctl_chronyd_status = execute_command(
-                ['systemctl', 'status', 'chronyd'],
+            service_status = execute_command(
+                ['systemctl', 'status', service],
                 verbose
             ).decode('utf-8')
-            chronyd_status = re.search(
+            temp_status = re.search(
                 r'Active\:\sactive\s\(running\)',
-                sysctl_chronyd_status
+                service_status
             )
-            if chronyd_status:
-                ntp_info['using'] = 'chronyd'
+            if temp_status:
+                ntp_info['using'] = service
             else:
-                ntp_info['installed'] = 'chronyd'
+                ntp_info['installed'] = service
+
+            break
 
     # If ntpd or chronyd is installed and running
     if ntp_info.get('installed'):

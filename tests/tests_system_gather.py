@@ -838,7 +838,7 @@ class TestSystemProfile(TestCase):
     # NTP checks
     def test_ntp_enabled(self):
         expected_output = {
-            'using': 'NTP',
+            'using': 'ntpd',
             'installed': True,
             'enabled': True,
             'synched': True
@@ -846,7 +846,7 @@ class TestSystemProfile(TestCase):
         mock_response = mock.Mock()
         mock_response.side_effect = [
             b'/bin/ntpstat',
-            command_returns.systemd_ntp_chronyd_status(ntpd=True),
+            command_returns.systemd_ntp_chronyd_status('ntpd'),
             command_returns.timedatectl_status(synched=True)
         ]
         with mock.patch(
@@ -872,7 +872,7 @@ class TestSystemProfile(TestCase):
         mock_response.side_effect = [
             b'',
             b'/sbin/chronyc',
-            command_returns.systemd_ntp_chronyd_status(ntpd=False),
+            command_returns.systemd_ntp_chronyd_status('chronyd'),
             command_returns.timedatectl_status(synched=True)
         ]
         with mock.patch(
@@ -890,7 +890,7 @@ class TestSystemProfile(TestCase):
     def test_ntp_disabled(self):
         expected_output = {
             'using': None,
-            'installed': 'NTP',
+            'installed': 'ntpd',
             'enabled': False,
             'synched': False
         }
@@ -924,6 +924,60 @@ class TestSystemProfile(TestCase):
         mock_response.side_effect = [
             b'',
             b'/sbin/chronyd',
+            command_returns.systemd_not_running_status(),
+            command_returns.timedatectl_status(synched=False)
+        ]
+        with mock.patch(
+            'ae_preflight.profile.execute_command',
+            side_effect=mock_response
+        ):
+            returns = profile.check_for_ntp_synch(True)
+
+        self.assertEquals(
+            expected_output,
+            returns,
+            'Returned values did not match expected output'
+        )
+
+    def test_timesyncd_enabled(self):
+        expected_output = {
+            'using': 'systemd-timesyncd',
+            'installed': True,
+            'enabled': True,
+            'synched': True
+        }
+        mock_response = mock.Mock()
+        mock_response.side_effect = [
+            b'',
+            b'',
+            b'/lib/systemd/systemd-timesyncd',
+            command_returns.systemd_ntp_chronyd_status('timesyncd'),
+            command_returns.timedatectl_status(synched=True)
+        ]
+        with mock.patch(
+            'ae_preflight.profile.execute_command',
+            side_effect=mock_response
+        ):
+            returns = profile.check_for_ntp_synch(True)
+
+        self.assertEquals(
+            expected_output,
+            returns,
+            'Returned values did not match expected output'
+        )
+
+    def test_timesyncd_disabled(self):
+        expected_output = {
+            'using': None,
+            'installed': 'systemd-timesyncd',
+            'enabled': False,
+            'synched': False
+        }
+        mock_response = mock.Mock()
+        mock_response.side_effect = [
+            b'',
+            b'',
+            b'/lib/systemd/systemd-timesyncd',
             command_returns.systemd_not_running_status(),
             command_returns.timedatectl_status(synched=False)
         ]
