@@ -952,7 +952,7 @@ class TestSystemProfile(TestCase):
             b'',
             b'/lib/systemd/systemd-timesyncd',
             command_returns.systemd_ntp_chronyd_status('timesyncd'),
-            command_returns.timedatectl_status(synched=True)
+            command_returns.timedatectl_status_timesyncd(synched=True)
         ]
         with mock.patch(
             'ae_preflight.profile.execute_command',
@@ -979,7 +979,7 @@ class TestSystemProfile(TestCase):
             b'',
             b'/lib/systemd/systemd-timesyncd',
             command_returns.systemd_not_running_status(),
-            command_returns.timedatectl_status(synched=False)
+            command_returns.timedatectl_status_timesyncd(synched=False)
         ]
         with mock.patch(
             'ae_preflight.profile.execute_command',
