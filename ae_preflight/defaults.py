@@ -24,6 +24,17 @@ DEFAULT_MODULES = [
     'overlay'
 ]
 
+TIME_SERVICES = {
+    'services': [
+        'ntpd',
+        'chronyd',
+        'systemd-timesyncd'
+    ],
+    'ntpd': ['which', 'ntpstat'],
+    'chronyd': ['which', 'chronyc'],
+    'systemd-timesyncd': ['ls', '/lib/systemd/systemd-timesyncd']
+}
+
 MODULE_EXCEPTIONS = {
     'rhel': {
         '7.2': [

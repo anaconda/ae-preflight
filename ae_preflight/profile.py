@@ -525,16 +525,11 @@ def check_for_ntp_synch(verbose):
         'enabled': False,
         'synched': False
     }
-
-    # Define time services and their respective checks
-    services = {
-        'ntpd': ['which', 'ntpstat'],
-        'chronyd': ['which', 'chronyc'],
-        'systemd-timesyncd': ['ls', '/lib/systemd/systemd-timesyncd']
-    }
-    for service, check in services.items():
-        check_for_service = execute_command(check, verbose).decode('utf-8')
-        print(check_for_service)
+    for service in defaults.TIME_SERVICES.get('services'):
+        check_for_service = execute_command(
+            defaults.TIME_SERVICES.get(service),
+            verbose
+        ).decode('utf-8')
         if check_for_service not in ['', None]:
             ntp_info['installed'] = True
             service_status = execute_command(
