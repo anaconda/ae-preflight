@@ -50,7 +50,7 @@ def distro_release_info(os):
         if os == 'centos':
             return_value = ('CentOS Linux', '7.5.1804', 'core')
         elif os == 'ubuntu':
-            return_value = ('Ubuntu', '16.04', 'xenial')
+            return_value = ('debian', 'stretch/sid', '')
         elif os == 'suse':
             return_value = ('SUSE Linux Enterprise Server', '12', 'x86_64')
 
