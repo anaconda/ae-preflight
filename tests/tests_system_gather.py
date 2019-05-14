@@ -966,7 +966,7 @@ class TestSystemProfile(TestCase):
             'Returned values did not match expected output'
         )
 
-    def test_chronyd_disabled(self):
+    def test_timesyncd_disabled(self):
         expected_output = {
             'using': None,
             'installed': 'systemd-timesyncd',
