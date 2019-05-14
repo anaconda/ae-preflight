@@ -555,10 +555,17 @@ def check_for_ntp_synch(verbose):
         ).decode('utf-8')
 
         enabled_status = 'no'
-        temp_enabled = re.search(
-            r'NTP enabled\:\s(.+?)\s+',
-            timedatectl_status
-        )
+        if ntp_info['using'] == 'systemd-timesyncd':
+            temp_enabled = re.search(
+                r'Network time on\:\s(.+?)\s+',
+                timedatectl_status
+            )
+        else:
+            temp_enabled = re.search(
+                r'NTP enabled\:\s(.+?)\s+',
+                timedatectl_status
+            )
+
         if temp_enabled:
             enabled_status = temp_enabled.group(1).strip().lower()
             if enabled_status == 'yes':

@@ -197,6 +197,29 @@ def timedatectl_status(synched=True):
         ).encode('utf-8')
 
 
+def timedatectl_status_timesyncd(synched=True):
+    if synched:
+        return (
+            'Local time: Tue 2019-05-14 16:39:56 UTC'
+            'Universal time: Tue 2019-05-14 16:39:56 UTC\n'
+            'RTC time: Tue 2019-05-14 16:39:56\n'
+            'Time zone: Etc/UTC (UTC, +0000)\n'
+            'Network time on: yes\n'
+            'NTP synchronized: yes\n'
+            'RTC in local TZ: no\n'
+        ).encode('utf-8')
+    else:
+        return (
+            'Local time: Tue 2019-05-14 16:39:56 UTC'
+            'Universal time: Tue 2019-05-14 16:39:56 UTC\n'
+            'RTC time: Tue 2019-05-14 16:39:56\n'
+            'Time zone: Etc/UTC (UTC, +0000)\n'
+            'Network time on: no\n'
+            'NTP synchronized: no\n'
+            'RTC in local TZ: no\n'
+        ).encode('utf-8')
+
+
 def systemd_ntp_chronyd_status(service):
     if service == 'ntpd':
         return (
