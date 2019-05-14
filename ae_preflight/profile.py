@@ -140,9 +140,34 @@ def get_os_info(verbose):
 
         profile['distribution'] = distribution
         linux_info = {
-            'version_id': temp_info[1],
             'name': temp_info[0]
         }
+
+        # Because of how platform works have to read /etc/lsb-release and get
+        # info from it as well to ensure we have the right info
+        if linux_info.get('name') == 'debian':
+            lsb_content = None
+            with open('/etc/lsb-release') as f:
+                lsb_content = f.read()
+
+            # Grab the data from lsb-release content
+            if lsb_content:
+                linux_info['version_id'] = (
+                    re.search('DISTRIB_RELEASE=(.+?)\n', lsb_content).group(1)
+                )
+                distribution = (
+                    re.search('DISTRIB_ID=(.+?)\n', lsb_content).group(1)
+                )
+
+            # Reset distribution from lsb-release file
+            if distribution:
+                profile['distribution'] = distribution.lower()
+
+            # Manually set the name
+            linux_info['name'] = 'Ubuntu'
+        else:
+            linux_info['version_id'] = temp_info[1]
+
         version = 'UNK'
         if linux_info.get('version_id'):
             temp_version = linux_info.get('version_id').split('.')

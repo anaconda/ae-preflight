@@ -283,6 +283,12 @@ class TestSystemProfile(TestCase):
         }
         mock_response = mock.Mock()
         mock_response.side_effect = [False, True]
+        lsb_return = (
+            'DISTRIB_ID=Ubuntu\nDISTRIB_RELEASE=16.04\n'
+            'DISTRIB_CODENAME=xenial\nDISTRIB_DESCRIPTION="'
+            'Ubuntu 16.04.6 LTS"\n'
+        )
+        mocked_open = mock.mock_open(read_data=lsb_return)
 
         with mock.patch('tests.fixtures.command_returns.sys') as v_info:
             v_info.version_info = (3, 7, 0, 'final', 0)
@@ -294,11 +300,12 @@ class TestSystemProfile(TestCase):
                     os.return_value = command_returns.distro_release_info(
                         'ubuntu'
                     )
-                    with mock.patch(
-                        'ae_preflight.profile.os.path.isfile',
-                        side_effect=mock_response
-                    ):
-                        os_info = profile.get_os_info(True)
+                    with mock.patch('ae_preflight.profile.open', mocked_open):
+                        with mock.patch(
+                            'ae_preflight.profile.os.path.isfile',
+                            side_effect=mock_response
+                        ):
+                            os_info = profile.get_os_info(True)
 
         self.assertEquals(
             expected_output,
