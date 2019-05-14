@@ -527,19 +527,28 @@ def check_for_ntp_synch(verbose):
     }
     for service in defaults.TIME_SERVICES.get('services'):
         check_for_service = execute_command(
-            defaults.TIME_SERVICES.get(service),
+            defaults.TIME_SERVICES.get(service).get('check'),
             verbose
         ).decode('utf-8')
         if check_for_service not in ['', None]:
             ntp_info['installed'] = True
-            service_status = execute_command(
-                ['systemctl', 'status', service],
-                verbose
-            ).decode('utf-8')
-            temp_status = re.search(
-                r'Active\:\sactive\s\(running\)',
-                service_status
-            )
+            names = defaults.TIME_SERVICES.get(service).get('names')
+            if names is None:
+                names = [service]
+
+            temp_status = None
+            for name in names:
+                service_status = execute_command(
+                    ['systemctl', 'status', name],
+                    verbose
+                ).decode('utf-8')
+                temp_status = re.search(
+                    r'Active\:\sactive\s\(running\)',
+                    service_status
+                )
+                if temp_status:
+                    break
+
             if temp_status:
                 ntp_info['using'] = service
             else:

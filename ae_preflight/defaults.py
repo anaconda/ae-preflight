@@ -30,9 +30,16 @@ TIME_SERVICES = {
         'chronyd',
         'systemd-timesyncd'
     ],
-    'ntpd': ['which', 'ntpstat'],
-    'chronyd': ['which', 'chronyc'],
-    'systemd-timesyncd': ['ls', '/lib/systemd/systemd-timesyncd']
+    'ntpd': {
+        'check': ['which', 'ntpd'],
+        'names': ['ntp', 'ntpd']
+    },
+    'chronyd': {
+        'check': ['which', 'chronyc']
+    },
+    'systemd-timesyncd': {
+        'check': ['ls', '/lib/systemd/systemd-timesyncd']
+    }
 }
 
 MODULE_EXCEPTIONS = {
