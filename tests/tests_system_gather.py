@@ -8,6 +8,7 @@ from ae_preflight import profile
 
 
 import ae_preflight
+import subprocess
 import psutil
 import glob
 import sys
@@ -484,7 +485,69 @@ class TestSystemProfile(TestCase):
                 with mock.patch(
                     'ae_preflight.profile.execute_command'
                 ) as command:
-                    command.return_value = b''
+                    command.return_value = b'This is a test return'
+                    returns = profile.mounts_check(True)
+
+        self.assertEquals(
+            expected_output,
+            returns,
+            'Returns do not match expected result'
+        )
+
+    def test_disk_space_unkown_ftype_exceptions(self):
+        expected_output = {
+            '/': {
+                'recommended': 2.0,
+                'free': 198.13,
+                'total': 199.7,
+                'mount_options': 'rw,inode64,noquota',
+                'file_system': 'xfs',
+                'ftype': 'UNK'
+            },
+            '/tmp': {
+                'recommended': 30.0,
+                'free': 198.13,
+                'total': 199.7,
+                'mount_options': 'rw,inode64,noquota',
+                'file_system': 'ext4'
+            },
+            '/opt/anaconda': {
+                'recommended': 100.0,
+                'free': 198.13,
+                'total': 199.7,
+                'mount_options': 'rw,inode64,noquota',
+                'file_system': 'ext4'
+            },
+            '/var': {
+                'recommended': 200.0,
+                'free': 198.13,
+                'total': 199.7,
+                'mount_options': 'rw,inode64,noquota',
+                'file_system': 'ext4'
+            }
+        }
+        mock_response = mock.Mock()
+        mock_response.side_effect = [
+            command_returns.psutil_disk_usage(),
+            command_returns.psutil_disk_usage(),
+            command_returns.psutil_disk_usage(),
+            command_returns.psutil_disk_usage(),
+        ]
+
+        raise_exception = mock.Mock()
+        raise_exception.side_effect = subprocess.CalledProcessError
+        with mock.patch(
+            'ae_preflight.profile.psutil.disk_partitions'
+        ) as part:
+            part.return_value = command_returns.psutil_disk_partitions()
+            with mock.patch(
+                'ae_preflight.profile.psutil.disk_usage',
+                side_effect=mock_response
+            ):
+                with mock.patch(
+                    'ae_preflight.profile.execute_command',
+                    side_effect=raise_exception
+                ):
                     returns = profile.mounts_check(True)
 
         self.assertEquals(

@@ -265,10 +265,23 @@ def mounts_check(verbose):
             mounts[mountpoint]['recommended'] = 100.0
 
         if mount_data.get('file_system') == 'xfs':
-            mount_info = execute_command(['xfs_info', mountpoint], verbose)
-            ftype_test = re.search(r'ftype=(\d)', mount_info.decode('utf-8'))
-            if ftype_test:
-                mounts[mountpoint]['ftype'] = ftype_test.group(1)
+            mount_info = None
+            try:
+                mount_info = execute_command(['xfs_info', mountpoint], verbose)
+            except Exception:
+                # Just because xfs is the formatted filesystem does
+                # not mean xfs_info is on the system
+                pass
+
+            if mount_info:
+                ftype_test = re.search(
+                    r'ftype=(\d)',
+                    mount_info.decode('utf-8')
+                )
+                if ftype_test:
+                    mounts[mountpoint]['ftype'] = ftype_test.group(1)
+                else:
+                    mounts[mountpoint]['ftype'] = 'UNK'
             else:
                 mounts[mountpoint]['ftype'] = 'UNK'
 
