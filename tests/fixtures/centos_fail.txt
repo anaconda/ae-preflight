@@ -184,10 +184,22 @@ Installed:    ntpd
 Enabled:      False
 Synchronized: False
 
+NTP Result: FAIL
+
 Note: NTP is vitally important to a system, and will prevent time drift among the servers in the kubernetes cluster. Time drift has been known to cause issues with etcd, and ordered events. It is adivisable to install, setup, and synch all servers to a central time server.
 
+---------------------------------------------------------
 
-NTP Result: FAIL
+DNS Checks
+Testing domain:      test.tld.com
+Resolved IP address: None
+
+Testing domain:      *.test.tld.com
+Resolved IP address: None
+
+DNS Result: FAIL
+
+Note: In order for the system to function correctly both a TLD and wildcard DNS entry are required. Both domains would need to resolve to the AE5 master and you can find out more information here: https://enterprise-docs.anaconda.com/en/latest/install/reqs.html?highlight=DNS#reqs-dns.
 
 =========================================================
 

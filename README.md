@@ -22,6 +22,7 @@ ae-preflight
 ```
 -i, --interface     Interface name i.e. eth0 or ens3 to check for open ports
 -v, --verbose       Increase verbosity of the script
+--hostname          Check hostname to ensure that DNS can be resolved for TLD and wildcard DNS
 ```
 
 ### Results

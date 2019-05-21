@@ -405,16 +405,49 @@ def process_results(system_info):
         ):
             ntp_result = 'FAIL'
 
+        f.write('\nNTP Result: {0}\n\n'.format(ntp_result))
+
         if ntp_result == 'FAIL':
             f.write(
-                '\nNote: NTP is vitally important to a system, and will '
+                'Note: NTP is vitally important to a system, and will '
                 'prevent time drift among the servers in the kubernetes '
                 'cluster. Time drift has been known to cause issues with '
                 'etcd, and ordered events. It is adivisable to install, '
                 'setup, and synch all servers to a central time server.\n\n'
             )
 
-        f.write('\nNTP Result: {0}\n\n'.format(ntp_result))
+        if system_info.get('dns'):
+
+            f.write(
+                '---------------------------------------------------------\n'
+            )
+
+            # DNS Checks
+            dns = system_info['dns']
+            dns_result = 'PASS'
+            f.write('\nDNS Checks\n')
+
+            for domain, data in dns.items():
+                f.write('Testing domain:      {0}\n'.format(domain))
+                f.write(
+                    'Resolved IP address: {0}\n\n'.format(
+                        data.get('ip_addr', 'None')
+                    )
+                )
+                if dns_result != 'FAIL':
+                    dns_result = data.get('status')
+
+            f.write('DNS Result: {0}\n\n'.format(dns_result))
+
+            if dns_result == 'FAIL':
+                f.write(
+                    'Note: In order for the system to function correctly '
+                    'both a TLD and wildcard DNS entry are required. Both '
+                    'domains would need to resolve to the AE5 master and you '
+                    'can find out more information here: https://enterprise'
+                    '-docs.anaconda.com/en/latest/install/reqs.html?'
+                    'highlight=DNS#reqs-dns.\n\n'
+                )
 
         f.write('=========================================================\n')
 

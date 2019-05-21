@@ -8,6 +8,8 @@ from ae_preflight import profile
 
 
 import ae_preflight
+import subprocess
+import socket
 import psutil
 import glob
 import sys
@@ -38,7 +40,7 @@ class TestSystemProfile(TestCase):
     def test_version(self):
         self.assertEquals(
             ae_preflight.__version__,
-            '0.1.4',
+            '0.1.6',
             'Version does not match expected value'
         )
 
@@ -484,7 +486,69 @@ class TestSystemProfile(TestCase):
                 with mock.patch(
                     'ae_preflight.profile.execute_command'
                 ) as command:
-                    command.return_value = b''
+                    command.return_value = b'This is a test return'
+                    returns = profile.mounts_check(True)
+
+        self.assertEquals(
+            expected_output,
+            returns,
+            'Returns do not match expected result'
+        )
+
+    def test_disk_space_unkown_ftype_exceptions(self):
+        expected_output = {
+            '/': {
+                'recommended': 2.0,
+                'free': 198.13,
+                'total': 199.7,
+                'mount_options': 'rw,inode64,noquota',
+                'file_system': 'xfs',
+                'ftype': 'UNK'
+            },
+            '/tmp': {
+                'recommended': 30.0,
+                'free': 198.13,
+                'total': 199.7,
+                'mount_options': 'rw,inode64,noquota',
+                'file_system': 'ext4'
+            },
+            '/opt/anaconda': {
+                'recommended': 100.0,
+                'free': 198.13,
+                'total': 199.7,
+                'mount_options': 'rw,inode64,noquota',
+                'file_system': 'ext4'
+            },
+            '/var': {
+                'recommended': 200.0,
+                'free': 198.13,
+                'total': 199.7,
+                'mount_options': 'rw,inode64,noquota',
+                'file_system': 'ext4'
+            }
+        }
+        mock_response = mock.Mock()
+        mock_response.side_effect = [
+            command_returns.psutil_disk_usage(),
+            command_returns.psutil_disk_usage(),
+            command_returns.psutil_disk_usage(),
+            command_returns.psutil_disk_usage(),
+        ]
+
+        raise_exception = mock.Mock()
+        raise_exception.side_effect = subprocess.CalledProcessError
+        with mock.patch(
+            'ae_preflight.profile.psutil.disk_partitions'
+        ) as part:
+            part.return_value = command_returns.psutil_disk_partitions()
+            with mock.patch(
+                'ae_preflight.profile.psutil.disk_usage',
+                side_effect=mock_response
+            ):
+                with mock.patch(
+                    'ae_preflight.profile.execute_command',
+                    side_effect=raise_exception
+                ):
                     returns = profile.mounts_check(True)
 
         self.assertEquals(
@@ -993,6 +1057,76 @@ class TestSystemProfile(TestCase):
             'Returned values did not match expected output'
         )
 
+    # DNS Checks
+    def test_dns_pass(self):
+        test_domain = 'test.tld.com'
+        expected_output = {
+            'test.tld.com': {'ip_addr': '1.2.3.4', 'status': 'PASS'},
+            '*.test.tld.com': {'ip_addr': '1.2.3.4', 'status': 'PASS'}
+        }
+        mock_response = mock.Mock()
+        mock_response.side_effect = [
+            '1.2.3.4',
+            '1.2.3.4'
+        ]
+        with mock.patch(
+            'ae_preflight.profile.socket.gethostbyname',
+            side_effect=mock_response
+        ):
+            returns = profile.check_dns_resolution(True, test_domain)
+
+        self.assertEquals(
+            expected_output,
+            returns,
+            'Returned values did not match expected output'
+        )
+
+    def test_dns_fail(self):
+        test_domain = 'test.tld.com'
+        expected_output = {
+            'test.tld.com': {'ip_addr': '1.2.3.4', 'status': 'PASS'},
+            '*.test.tld.com': {'ip_addr': None, 'status': 'FAIL'}
+        }
+        mock_response = mock.Mock()
+        mock_response.side_effect = [
+            '1.2.3.4',
+            socket.gaierror
+        ]
+        with mock.patch(
+            'ae_preflight.profile.socket.gethostbyname',
+            side_effect=mock_response
+        ):
+            returns = profile.check_dns_resolution(True, test_domain)
+
+        self.assertEquals(
+            expected_output,
+            returns,
+            'Returned values did not match expected output'
+        )
+
+    def test_dns_pass_wildcard_provided(self):
+        test_domain = '*.test.tld.com'
+        expected_output = {
+            'test.tld.com': {'ip_addr': '1.2.3.4', 'status': 'PASS'},
+            '*.test.tld.com': {'ip_addr': '1.2.3.4', 'status': 'PASS'}
+        }
+        mock_response = mock.Mock()
+        mock_response.side_effect = [
+            '1.2.3.4',
+            '1.2.3.4'
+        ]
+        with mock.patch(
+            'ae_preflight.profile.socket.gethostbyname',
+            side_effect=mock_response
+        ):
+            returns = profile.check_dns_resolution(True, test_domain)
+
+        self.assertEquals(
+            expected_output,
+            returns,
+            'Returned values did not match expected output'
+        )
+
     # Test main and ensure that things work
     @mock.patch('ae_preflight.profile.argparse')
     def test_main_full_test(self, mock_patch):
@@ -1055,7 +1189,14 @@ class TestSystemProfile(TestCase):
                                                     check_ntp.return_value = (
                                                         reporting_returns.ntp_check('ntpd', test_pass=True)  # noqa
                                                     )
-                                                    profile.main()
+                                                    with mock.patch(
+                                                        'ae_preflight.profile.'
+                                                        'check_dns_resolution'
+                                                    ) as check_dns:
+                                                        check_dns.return_value = (    # noqa
+                                                            reporting_returns.dns_check(test_pass=True)  # noqa
+                                                        )
+                                                        profile.main()
 
         results_file = glob.glob('results.txt')
         self.assertEqual(
