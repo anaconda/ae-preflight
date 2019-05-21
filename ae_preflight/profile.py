@@ -538,6 +538,9 @@ def check_for_ntp_synch(verbose):
         'enabled': False,
         'synched': False
     }
+    if verbose:
+        print('Checking NTP setup and configuration on system')
+
     for service in defaults.TIME_SERVICES.get('services'):
         check_for_service = execute_command(
             defaults.TIME_SERVICES.get(service).get('check'),

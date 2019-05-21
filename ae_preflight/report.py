@@ -405,9 +405,11 @@ def process_results(system_info):
         ):
             ntp_result = 'FAIL'
 
+        f.write('\nNTP Result: {0}\n\n'.format(ntp_result))
+
         if ntp_result == 'FAIL':
             f.write(
-                '\nNote: NTP is vitally important to a system, and will '
+                'Note: NTP is vitally important to a system, and will '
                 'prevent time drift among the servers in the kubernetes '
                 'cluster. Time drift has been known to cause issues with '
                 'etcd, and ordered events. It is adivisable to install, '
