@@ -40,7 +40,7 @@ class TestSystemProfile(TestCase):
     def test_version(self):
         self.assertEquals(
             ae_preflight.__version__,
-            '0.1.4',
+            '0.1.6',
             'Version does not match expected value'
         )
 
