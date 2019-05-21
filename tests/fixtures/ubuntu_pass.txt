@@ -119,6 +119,17 @@ Synchronized: True
 
 NTP Result: PASS
 
+---------------------------------------------------------
+
+DNS Checks
+Testing domain:      test.tld.com
+Resolved IP address: 1.2.3.4
+
+Testing domain:      *.test.tld.com
+Resolved IP address: 1.2.3.4
+
+DNS Result: PASS
+
 =========================================================
 
 Overall Result: PASS

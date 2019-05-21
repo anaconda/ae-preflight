@@ -224,6 +224,7 @@ class TestReporting(TestCase):
             'ntpd',
             test_pass=test_pass
         )
+        system_info['dns'] = reporting_returns.dns_check(test_pass=test_pass)
 
         report.process_results(system_info)
 

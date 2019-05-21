@@ -606,6 +606,44 @@ def check_for_ntp_synch(verbose):
     return ntp_info
 
 
+def check_dns_resolution(verbose, hostname):
+    dns_info = {}
+    if verbose:
+        print('Checking for DNS resolution')
+
+    tld = None
+    wildcard = None
+    check_wildcard = re.search(r'^(\*\.)(.*)', hostname)
+    if check_wildcard:
+        tld = check_wildcard.group(2)
+        wildcard = hostname
+    else:
+        tld = hostname
+        wildcard = '*.{0}'.format(hostname)
+
+    test_wildcard = 'test.{0}'.format(tld)
+    temp_checks = [tld, test_wildcard]
+    for i in range(0, 2):
+        if i == 1:
+            domain_key = wildcard
+        else:
+            domain_key = tld
+
+        dns_info[domain_key] = {'ip_addr': None, 'status': 'FAIL'}
+        temp_ip = None
+        try:
+            temp_ip = socket.gethostbyname(temp_checks[i])
+        except Exception:
+            # No need to do anything if DNS does not resolve
+            pass
+
+        if temp_ip:
+            dns_info[domain_key]['ip_addr'] = temp_ip
+            dns_info[domain_key]['status'] = 'PASS'
+
+    return dns_info
+
+
 def handle_arguments():
     description = (
         'System checks and tests to ensure system meets the installation '
@@ -620,6 +658,14 @@ def handle_arguments():
         help=(
             'Specify interface name i.e. eth0 to test instead '
             'of checking all interfaces'
+        )
+    )
+    parser.add_argument(
+        '--hostname',
+        required=False,
+        help=(
+            'Hostname being used for AE5. DNS resolution will be tested '
+            'for the specified doamin and corresponding wildcard domain.'
         )
     )
     parser.add_argument(
@@ -675,6 +721,10 @@ def main():
     system_info['sysctl'] = check_sysctl(args.verbose)
     system_info['dir_paths'] = check_dir_paths(args.verbose)
     system_info['ntp'] = check_for_ntp_synch(args.verbose)
+
+    if args.hostname:
+        system_info['dns'] = check_dns_resolution(args.verbose, args.hostname)
+
     overall_result = report.process_results(system_info)
     print('\nOverall Result: {0}'.format(overall_result))
     print(

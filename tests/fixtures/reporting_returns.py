@@ -287,3 +287,16 @@ def ntp_check(process, test_pass=True):
                 'enabled': False,
                 'synched': False
             }
+
+
+def dns_check(test_pass=True):
+    if test_pass:
+        return {
+            'test.tld.com': {'ip_addr': '1.2.3.4', 'status': 'PASS'},
+            '*.test.tld.com': {'ip_addr': '1.2.3.4', 'status': 'PASS'}
+        }
+    else:
+        return {
+            'test.tld.com': {'ip_addr': None, 'status': 'FAIL'},
+            '*.test.tld.com': {'ip_addr': None, 'status': 'FAIL'}
+        }
