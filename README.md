@@ -50,8 +50,6 @@ python setup.py install
 ae-preflight
 ```
 
-***
-
 #### Ubuntu 16.04
 
 ```sh
@@ -68,10 +66,7 @@ python setup.py install
 ae-preflight
 ```
 
-***
-
 #### Suse 12
-
 
 ```sh
 # Install dependencies
@@ -85,8 +80,6 @@ python setup.py install
 # Run prechecks
 ae-preflight
 ```
-
-***
 
 #### Conda Environment
 
