@@ -4,7 +4,7 @@ Anaconda Enterprise Preflight Checks
 ======
 
 #### Installing
-To install the package do the following from the command line of your system.
+To install the package do the following from the command line of your system. For system specific instructions see [detailed instructions](#detailed-install-instructions).
 
 ```sh
 git clone
@@ -29,3 +29,87 @@ ae-preflight
 
 Results are located in a results.txt file in the directory that you ran the script from. The results file will warn and fail certain tests, and give
 you reasons why and solutions on how to fix the issues.
+
+### Detailed install instructions
+
+#### CentOS 7.X
+** Python 2.7.5 **
+
+```sh
+# Install requirements
+yum install epel-release -y
+yum install git python-psutil -y
+
+# Git clone and install
+git clone https://github.com/Anaconda-Platform/ae-preflight.git
+cd ae-preflight
+python setup.py install
+
+# Run program
+ae-preflight
+```
+
+#### Ubuntu 16.04
+** Python 3.5.2 **
+
+```sh
+# Update apt-caches and install requirements
+apt-get update
+apt-get install python3-psutil git python3-setuptools -y
+
+# Git clone and install
+git clone https://github.com/Anaconda-Platform/ae-preflight.git
+cd ae-preflight
+python setup.py install
+
+# Run prechecks
+ae-preflight
+```
+
+#### Suse 12
+** Python 2.7.13  **
+
+```sh
+# Install dependencies
+zypper install -y git python-psutil
+
+# Git clone and install
+git clone https://github.com/Anaconda-Platform/ae-preflight.git
+cd ae-preflight
+python setup.py install
+
+# Run prechecks
+ae-preflight
+```
+
+#### Conda Environment
+
+##### Install requirements
+```sh
+# Install from yum (CentOS and RHEL)
+yum install bzip2 -y
+
+# Install from apt (Ubuntu)
+apt-get install bzip2 -y
+
+# Install from zypper (Suse)
+zypper install -y bzip2
+```
+
+##### Install and setup conda environment
+```sh
+# Get miniconda and install it
+curl -O https://repo.anaconda.com/miniconda/Miniconda2-4.6.14-Linux-x86_64.sh
+bash Miniconda2-4.6.14-Linux-x86_64.sh  # Accept the license and take the defaults
+
+# Source bashrc to pick up conda paths
+source ~/.bashrc
+
+# Create profile, and preflight package
+conda create -n python37 python=3.7 psutil -y
+conda activate python37
+conda install -c aeadmin ae_preflight -y
+
+# Run prechecks
+ae-preflight
+```
