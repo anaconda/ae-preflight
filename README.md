@@ -30,10 +30,11 @@ ae-preflight
 Results are located in a results.txt file in the directory that you ran the script from. The results file will warn and fail certain tests, and give
 you reasons why and solutions on how to fix the issues.
 
+***
+
 ### Detailed install instructions
 
 #### CentOS 7.X
-** Python 2.7.5 **
 
 ```sh
 # Install requirements
@@ -49,8 +50,9 @@ python setup.py install
 ae-preflight
 ```
 
+***
+
 #### Ubuntu 16.04
-** Python 3.5.2 **
 
 ```sh
 # Update apt-caches and install requirements
@@ -66,8 +68,10 @@ python setup.py install
 ae-preflight
 ```
 
+***
+
 #### Suse 12
-** Python 2.7.13  **
+
 
 ```sh
 # Install dependencies
@@ -81,6 +85,8 @@ python setup.py install
 # Run prechecks
 ae-preflight
 ```
+
+***
 
 #### Conda Environment
 
