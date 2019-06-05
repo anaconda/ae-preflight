@@ -200,18 +200,22 @@ def process_results(system_info):
         for interface, interface_data in ports.items():
             interface_result = 'PASS'
             f.write('\nInterface {0}:\n'.format(interface))
-            for port, port_status in interface_data.items():
-                f.write(
-                    'Port: {0} - {1}\n'.format(
-                        port,
-                        port_status.title()
+            if isinstance(interface_data, dict):
+                for port, port_status in interface_data.items():
+                    f.write(
+                        'Port: {0} - {1}\n'.format(
+                            port,
+                            port_status.title()
+                        )
                     )
-                )
-                if port_status == 'closed':
-                    interface_result = 'WARN'
+                    if port_status == 'closed':
+                        interface_result = 'WARN'
+            else:
+                f.write('Interface has no assigned IP address\n')
+                interface_result = 'WARN'
 
             f.write(
-                '\n{0} Result: {1}\n\n'.format(
+                '\n{0} Result: {1}\n'.format(
                     interface,
                     interface_result
                 )
@@ -219,7 +223,9 @@ def process_results(system_info):
             if overall_result == 'PASS' and interface_result == 'WARN':
                 overall_result = 'WARN'
 
-        f.write('---------------------------------------------------------\n')
+        f.write(
+            '\n---------------------------------------------------------\n'
+        )
 
         # Agents
         agents = system_info['agents']
