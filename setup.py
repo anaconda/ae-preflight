@@ -22,7 +22,7 @@ else:
 
 setuptools.setup(
     name='ae_preflight',
-    version='0.1.6',
+    version='0.1.7',
     url='https://github.com/Anaconda-Platform/ae-preflight',
     license='Apache License, Version 2.0',
     author='Dave Kludt',

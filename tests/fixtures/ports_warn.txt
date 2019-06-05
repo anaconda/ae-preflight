@@ -71,6 +71,11 @@ Port: 65535 - Closed
 
 eth0 Result: WARN
 
+Interface eth1:
+Interface has no assigned IP address
+
+eth1 Result: WARN
+
 ---------------------------------------------------------
 
 Agent Checks

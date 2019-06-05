@@ -100,7 +100,15 @@ def get_interface_ip_address(interface, verbose):
     if type(temp_info) == bytes:
         temp_info = temp_info.decode('utf-8')
 
-    ip_address = temp_info.split('inet ')[1].split('/')[0]
+    ip_address = None
+    temp_inet = temp_info.split('inet ')
+    if len(temp_inet) > 1:
+        temp_cidr = temp_inet[1].split('/')
+
+        if len(temp_cidr) > 0:
+            ip_address = temp_cidr[0]
+
+    # ip_address = temp_info.split('inet ')[1].split('/')[0]
     return ip_address
 
 
@@ -452,11 +460,14 @@ def check_open_ports(interface, verbose):
 
     for interface in interfaces:
         ip_address = get_interface_ip_address(interface, verbose)
-        open_ports[interface] = {}
-        for port in defaults.OPEN_PORTS:
-            open_ports[interface][str(port)] = (
-                check_for_socket(ip_address, port, verbose)
-            )
+        if ip_address:
+            open_ports[interface] = {}
+            for port in defaults.OPEN_PORTS:
+                open_ports[interface][str(port)] = (
+                    check_for_socket(ip_address, port, verbose)
+                )
+        else:
+            open_ports[interface] = 'No IP address assigned'
 
     return open_ports
 

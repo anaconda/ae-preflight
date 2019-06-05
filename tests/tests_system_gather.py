@@ -149,6 +149,23 @@ class TestSystemProfile(TestCase):
             'Did not get the expected IP address'
         )
 
+    def test_get_ip_address_bad_interface(self):
+        expected_result = None
+        with mock.patch('ae_preflight.profile.execute_command') as cmd:
+            cmd.return_value = (
+                command_returns.ip_addr_show_no_ip().decode('utf-8')
+            )
+            ip_address = profile.get_interface_ip_address(
+                'enP33102p0s2',
+                False
+            )
+
+        self.assertEquals(
+            expected_result,
+            ip_address,
+            'Did not get the expected IP address'
+        )
+
     # OS Info
     def test_os_info_rhel_platform(self):
         expected_output = {
@@ -754,6 +771,22 @@ class TestSystemProfile(TestCase):
         ) as iface:
             iface.side_effect = IOError()
             returns = profile.check_open_ports(None, True)
+
+        self.assertEquals(
+            expected_output,
+            returns,
+            'Returned values did not match expected output'
+        )
+
+    def test_open_ports_no_ip_addr(self):
+        expected_output = {
+            'eth0': 'No IP address assigned'
+        }
+        with mock.patch(
+            'ae_preflight.profile.get_interface_ip_address'
+        ) as ip:
+            ip.return_value = None
+            returns = profile.check_open_ports('eth0', True)
 
         self.assertEquals(
             expected_output,

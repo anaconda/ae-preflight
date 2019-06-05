@@ -15,6 +15,15 @@ def ip_addr_show():
     return ip_show
 
 
+def ip_addr_show_no_ip():
+    ip_show = (
+        '3: enP33102p0s2: <BROADCAST,MULTICAST,SLAVE,UP,LOWER_UP> mtu '
+        '1500 qdisc mq state UP group default qlen 1000\n'
+        'link/ether 00:0d:3a:47:72:bd brd ff:ff:ff:ff:ff:ff'
+    ).encode('utf-8')
+    return ip_show
+
+
 def distro_release_info(os):
     return_value = {}
     # Check python version and if 3.8 use these returns for distro

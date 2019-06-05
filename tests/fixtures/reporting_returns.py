@@ -160,7 +160,8 @@ def ports(test_pass=True):
             '32009': 'closed',
             '61009': 'closed',
             '65535': 'closed'
-        }
+        },
+        'eth1': 'No IP address assigned'
     }
 
 
