@@ -1,4 +1,4 @@
-[![Travis Status](https://travis-ci.org/Anaconda-Platform/ae-preflight.svg?branch=master)](https://travis-ci.org/Anaconda-Platform/ae-preflight.svg?branch=master)
+[![Travis Status](https://travis-ci.org/Anaconda-Platform/ae-preflight.svg?branch=master)](https://travis-ci.org/Anaconda-Platform/ae-preflight.svg?branch=master) &nbsp; [![Anaconda-Server Badge](https://anaconda.org/aeadmin/ae_preflight/badges/latest_release_date.svg)](https://anaconda.org/aeadmin/ae_preflight) &nbsp; [![Anaconda-Server Badge](https://anaconda.org/aeadmin/ae_preflight/badges/version.svg)](https://anaconda.org/aeadmin/ae_preflight)
 
 Anaconda Enterprise Preflight Checks
 ======
