@@ -3,7 +3,7 @@
 
 package:
   name: ae_preflight
-  version: '0.1.7'
+  version: '0.1.8'
 
 source:
   path: .
@@ -16,7 +16,7 @@ build:
 
 requirements:
   build:
-    - python >=2.7,<=3.7
+    - python {{ python }}
     - setuptools
     - psutil
 
