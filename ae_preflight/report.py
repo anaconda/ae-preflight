@@ -418,8 +418,8 @@ def process_results(system_info):
                 'Note: NTP is vitally important to a system, and will '
                 'prevent time drift among the servers in the kubernetes '
                 'cluster. Time drift has been known to cause issues with '
-                'etcd, and ordered events. It is adivisable to install, '
-                'setup, and synch all servers to a central time server.\n\n'
+                'etcd, and ordered events. It is advisable to install, '
+                'setup, and sync all servers to a central time server.\n\n'
             )
 
         if system_info.get('dns'):
