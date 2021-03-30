@@ -6,7 +6,7 @@ are setup, running, or setup to be working on the system.
 
 OS_VALUES = {
     'rhel': {
-        'versions': ['7.2', '7.3', '7.4', '7.5', '7.6', '7.7', '7.8'],
+        'versions': ['7.2', '7.3', '7.4', '7.5', '7.6', '7.7', '7.8', '8.0'],
     },
     'debian': {
         'versions': ['16.04'],
@@ -21,6 +21,7 @@ DEFAULT_MODULES = [
     'br_netfilter',
     'iptable_nat',
     'ebtables',
+    'ebtable_filter',
     'overlay'
 ]
 
@@ -48,6 +49,7 @@ MODULE_EXCEPTIONS = {
             'iptable_filter',
             'iptable_nat',
             'ebtables',
+            'ebtable_filter',
             'bridge'
         ]
     },
@@ -56,6 +58,7 @@ MODULE_EXCEPTIONS = {
             'iptable_filter',
             'iptable_nat',
             'ebtables',
+            'ebtable_filter',
             'overlay',
             'bridge'
         ]

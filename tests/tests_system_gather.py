@@ -581,6 +581,7 @@ class TestSystemProfile(TestCase):
                 'iptable_filter',
                 'iptable_nat',
                 'ebtables',
+                'ebtable_filter',
                 'bridge'
             ],
             'enabled': ['overlay']
