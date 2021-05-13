@@ -22,7 +22,7 @@ jobs:
       run: |
         source $CONDA/etc/profile.d/conda.sh
         conda install -y conda-build conda-verify
-        conda build
+        conda build meta.yaml
     - name: Upload to anaconda.org
       if: github.event_name == 'push'
       env:
