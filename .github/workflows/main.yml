@@ -1,0 +1,35 @@
+name: Build
+on:
+  push:
+    branches:
+      - master
+    tags:
+      - '*'
+  pull_request:
+    branches:
+      - master
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Retrieve the source code
+      uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
+    - name: Build the package
+      env:
+        CONDA_CHANNELS: defaults,https://conda.anaconda.org/ae5-admin
+      run: |
+        source $CONDA/etc/profile.d/conda.sh
+        conda install -y conda-build conda-verify
+        conda build conda.recipe
+    - name: Upload to anaconda.org
+      if: github.event_name == 'push'
+      env:
+        ANACONDA_TOKEN: ${{ secrets.ANACONDA_TOKEN }}
+        GITHUB_REF: ${{ github.ref }}
+      run: |
+        source $CONDA/bin/activate
+        conda install -y anaconda-client
+        [[ "$GITHUB_REF" =~ ^refs/tags/ ]] || export LABEL="--label dev"
+        anaconda --verbose --token $ANACONDA_TOKEN upload --user ae5-admin $LABEL $CONDA/conda-bld/*/*.tar.bz2 --force
