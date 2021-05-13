@@ -31,5 +31,5 @@ jobs:
       run: |
         source $CONDA/bin/activate
         conda install -y anaconda-client
-        [[ "$GITHUB_REF" =~ ^refs/tags/ ]] || export LABEL="--label dev"
+        [[ "$GITHUB_REF" =~ ^refs/tags/ ]] || export LABEL="--label main"
         anaconda --verbose --token $ANACONDA_TOKEN upload --user ae5-admin $LABEL $CONDA/conda-bld/*/*.tar.bz2 --force
