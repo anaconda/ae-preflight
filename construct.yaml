@@ -1,0 +1,13 @@
+name: ae_preflight
+version: "0.1.8"
+
+install_in_dependency_order: True
+
+channels:
+  - http://repo.anaconda.com/pkgs/main/
+  - http://conda.anaconda.org/ae5-admin
+
+specs:
+  - psutil
+  - python=3.7
+  - ae_preflight
