@@ -2,26 +2,26 @@
 # To build: conda build ae-preflight
 
 package:
-  name: ae_preflight
-  version: '0.1.8'
+  name: ae-preflight
+  version: '0.1.9'
 
 source:
   path: .
 
 build:
   number: 0
-  script: python setup.py install --single-version-externally-managed --record=record.txt
+  script:
+    - {{ PYTHON }} -m pip install . --no-deps --ignore-installed -vv
   entry_points:
     - ae-preflight=ae_preflight.profile:main
+  noarch: python
 
 requirements:
   build:
-    - python {{ python }}
-    - setuptools
-    - psutil
-
-  run:
     - python
+    - pip
+  run:
+    - python>=3.7
     - psutil
 
 test:
