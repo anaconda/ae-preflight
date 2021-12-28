@@ -352,8 +352,10 @@ def check_system_type(based_on, version, verbose):
 
     if defaults.OS_VALUES.get(based_on):
         supported['OS'] = 'PASS'
-        if version in defaults.OS_VALUES.get(based_on).get('versions'):
-            supported['version'] = 'PASS'
+        for testver in defaults.OS_VALUES.get(based_on).get('versions'):
+            if all(a == b for a, b in zip(testver.split('.'), version.split('.'))):
+                supported['version'] = 'PASS'
+                break
 
     return supported
 
