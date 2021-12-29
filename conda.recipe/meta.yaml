@@ -11,6 +11,7 @@ source:
 build:
   number: 0
   script:
+    - flake8 .
     - {{ PYTHON }} -m pip install . --no-deps --ignore-installed -vv
   entry_points:
     - ae-preflight=ae_preflight.profile:main
@@ -19,22 +20,24 @@ build:
 requirements:
   build:
     - python
+    - flake8
     - pip
   run:
-    - python>=3.7
+    - python
+    - distro
     - psutil
 
 test:
   imports:
     - ae_preflight
-
   requires:
     - mock
     - nose
     - flake8
-
+  source_files:
+    - tests/
   commands:
-    - flake8 . --exclude run_test.py
+    - nosetests tests
 
 about:
   home: 'https://github.com/Anaconda-Platform/ae-preflight'

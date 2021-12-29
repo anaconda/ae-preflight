@@ -1,4 +1,3 @@
-
 from __future__ import absolute_import
 
 
@@ -12,20 +11,11 @@ import subprocess
 import socket
 import psutil
 import glob
-import sys
 import os
 
 
-if sys.version_info[:2] >= (2, 7):
-    from unittest import TestCase
-else:
-    from unittest2 import TestCase
-
-
-try:
-    from unittest import mock
-except ImportError:
-    import mock
+from unittest import TestCase
+import mock
 
 
 class TestSystemProfile(TestCase):
@@ -40,7 +30,7 @@ class TestSystemProfile(TestCase):
     def test_version(self):
         self.assertEquals(
             ae_preflight.__version__,
-            '0.1.6',
+            '0.1.9',
             'Version does not match expected value'
         )
 
@@ -166,36 +156,6 @@ class TestSystemProfile(TestCase):
             'Did not get the expected IP address'
         )
 
-    # OS Info
-    def test_os_info_rhel_platform(self):
-        expected_output = {
-            'distribution': 'centos',
-            'version': '7.5',
-            'dist_name': 'CentOS Linux',
-            'based_on': 'rhel'
-        }
-        with mock.patch('tests.fixtures.command_returns.sys') as v_info:
-            v_info.version_info = (3, 7, 0, 'final', 0)
-            with mock.patch('ae_preflight.profile.sys') as version:
-                version.version_info = (3, 7, 0, 'final', 0)
-                with mock.patch(
-                    'ae_preflight.profile.platform.linux_distribution'
-                ) as os:
-                    os.return_value = command_returns.distro_release_info(
-                        'centos'
-                    )
-                    with mock.patch(
-                        'ae_preflight.profile.os.path.isfile'
-                    ) as file:
-                        file.return_value = True
-                        os_info = profile.get_os_info(True)
-
-        self.assertEquals(
-            expected_output,
-            os_info,
-            'OS information returned was not the expected value'
-        )
-
     def test_os_info_rhel_distro(self):
         expected_output = {
             'distribution': 'centos',
@@ -203,21 +163,17 @@ class TestSystemProfile(TestCase):
             'dist_name': 'CentOS Linux',
             'based_on': 'rhel'
         }
-        with mock.patch('tests.fixtures.command_returns.sys') as v_info:
-            v_info.version_info = (3, 8, 0, 'final', 0)
-            with mock.patch('ae_preflight.profile.sys') as version:
-                version.version_info = (3, 8, 0, 'final', 0)
-                with mock.patch(
-                    'ae_preflight.profile.distro.distro_release_info'
-                ) as os:
-                    os.return_value = command_returns.distro_release_info(
-                        'centos'
-                    )
-                    with mock.patch(
-                        'ae_preflight.profile.os.path.isfile'
-                    ) as file:
-                        file.return_value = True
-                        os_info = profile.get_os_info(True)
+        with mock.patch(
+            'ae_preflight.profile.distro.distro_release_info'
+        ) as os:
+            os.return_value = command_returns.distro_release_info(
+                'centos'
+            )
+            with mock.patch(
+                'ae_preflight.profile.os.path.isfile'
+            ) as file:
+                file.return_value = True
+                os_info = profile.get_os_info(True)
 
         self.assertEquals(
             expected_output,
@@ -235,96 +191,21 @@ class TestSystemProfile(TestCase):
         mock_response = mock.Mock()
         mock_response.side_effect = [False, False, True]
 
-        with mock.patch('tests.fixtures.command_returns.sys') as v_info:
-            v_info.version_info = (3, 8, 0, 'final', 0)
-            with mock.patch('ae_preflight.profile.sys') as version:
-                version.version_info = (3, 8, 0, 'final', 0)
+        with mock.patch(
+            'ae_preflight.profile.distro.distro_release_info'
+        ) as os:
+            os.return_value = {}
+            with mock.patch(
+                'ae_preflight.profile.distro.os_release_info'
+            ) as distro:
+                distro.return_value = (
+                    command_returns.distro_release_info('suse')
+                )
                 with mock.patch(
-                    'ae_preflight.profile.distro.distro_release_info'
-                ) as os:
-                    os.return_value = {}
-                    with mock.patch(
-                        'ae_preflight.profile.distro.os_release_info'
-                    ) as distro:
-                        distro.return_value = (
-                            command_returns.distro_release_info('suse')
-                        )
-                        with mock.patch(
-                            'ae_preflight.profile.os.path.isfile',
-                            side_effect=mock_response
-                        ):
-                            os_info = profile.get_os_info(True)
-
-        self.assertEquals(
-            expected_output,
-            os_info,
-            'OS information returned was not the expected value'
-        )
-
-    def test_os_info_suse_platform(self):
-        expected_output = {
-            'distribution': 'suse',
-            'version': '12',
-            'dist_name': 'SUSE Linux Enterprise Server',
-            'based_on': 'suse'
-        }
-        mock_response = mock.Mock()
-        mock_response.side_effect = [False, False, True]
-
-        with mock.patch('tests.fixtures.command_returns.sys') as v_info:
-            v_info.version_info = (3, 7, 0, 'final', 0)
-            with mock.patch('ae_preflight.profile.sys') as version:
-                version.version_info = (3, 7, 0, 'final', 0)
-                with mock.patch(
-                    'ae_preflight.profile.platform.linux_distribution'
-                ) as os:
-                    os.return_value = command_returns.distro_release_info(
-                        'suse'
-                    )
-                    with mock.patch(
-                        'ae_preflight.profile.os.path.isfile',
-                        side_effect=mock_response
-                    ):
-                        os_info = profile.get_os_info(True)
-
-        self.assertEquals(
-            expected_output,
-            os_info,
-            'OS information returned was not the expected value'
-        )
-
-    def test_os_info_debian_platform(self):
-        expected_output = {
-            'distribution': 'ubuntu',
-            'version': '16.04',
-            'dist_name': 'Ubuntu',
-            'based_on': 'debian'
-        }
-        mock_response = mock.Mock()
-        mock_response.side_effect = [False, True]
-        lsb_return = (
-            'DISTRIB_ID=Ubuntu\nDISTRIB_RELEASE=16.04\n'
-            'DISTRIB_CODENAME=xenial\nDISTRIB_DESCRIPTION="'
-            'Ubuntu 16.04.6 LTS"\n'
-        )
-        mocked_open = mock.mock_open(read_data=lsb_return)
-
-        with mock.patch('tests.fixtures.command_returns.sys') as v_info:
-            v_info.version_info = (3, 7, 0, 'final', 0)
-            with mock.patch('ae_preflight.profile.sys') as version:
-                version.version_info = (3, 7, 0, 'final', 0)
-                with mock.patch(
-                    'ae_preflight.profile.platform.linux_distribution'
-                ) as os:
-                    os.return_value = command_returns.distro_release_info(
-                        'ubuntu'
-                    )
-                    with mock.patch('ae_preflight.profile.open', mocked_open):
-                        with mock.patch(
-                            'ae_preflight.profile.os.path.isfile',
-                            side_effect=mock_response
-                        ):
-                            os_info = profile.get_os_info(True)
+                    'ae_preflight.profile.os.path.isfile',
+                    side_effect=mock_response
+                ):
+                    os_info = profile.get_os_info(True)
 
         self.assertEquals(
             expected_output,
@@ -342,21 +223,17 @@ class TestSystemProfile(TestCase):
         mock_response = mock.Mock()
         mock_response.side_effect = [False, True]
 
-        with mock.patch('tests.fixtures.command_returns.sys') as v_info:
-            v_info.version_info = (3, 8, 0, 'final', 0)
-            with mock.patch('ae_preflight.profile.sys') as version:
-                version.version_info = (3, 8, 0, 'final', 0)
-                with mock.patch(
-                    'ae_preflight.profile.distro.distro_release_info'
-                ) as os:
-                    os.return_value = command_returns.distro_release_info(
-                        'ubuntu'
-                    )
-                    with mock.patch(
-                        'ae_preflight.profile.os.path.isfile',
-                        side_effect=mock_response
-                    ):
-                        os_info = profile.get_os_info(True)
+        with mock.patch(
+            'ae_preflight.profile.distro.distro_release_info'
+        ) as os:
+            os.return_value = command_returns.distro_release_info(
+                'ubuntu'
+            )
+            with mock.patch(
+                'ae_preflight.profile.os.path.isfile',
+                side_effect=mock_response
+            ):
+                os_info = profile.get_os_info(True)
 
         self.assertEquals(
             expected_output,

@@ -1,4 +1,3 @@
-
 """
 Default sets of variables for reporting and the profile to check, and ensure
 are setup, running, or setup to be working on the system.

@@ -1,5 +1,4 @@
-
-from ae_preflight import defaults
+from . import defaults
 
 
 def process_results(system_info):

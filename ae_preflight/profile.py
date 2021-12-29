@@ -1,33 +1,17 @@
-
-from ae_preflight import defaults
-from ae_preflight import report
-
+from . import defaults
+from . import report
 
 from contextlib import closing
 from subprocess import Popen
 from subprocess import PIPE
 
-
 import argparse
 import socket
 import psutil
-import sys
 import os
 import re
 
-
-"""
-In python 3.8 platform is being removed and distro will be in its own package
-"""
-if sys.version_info[:2] <= (3, 7):
-    import platform
-
-
-# Try to import distro but it is only needed in python 3.8 and above
-try:
-    import distro
-except Exception:
-    pass
+import distro
 
 
 def execute_command(command, verbose):
@@ -122,68 +106,21 @@ def get_os_info(verbose):
     if verbose:
         print('Gathering OS and distribution information')
 
-    # Ensure to use distro when running python 3.8
-    if sys.version_info[:2] > (3, 7):
-        linux_info = distro.distro_release_info()
-        # On SUSE distro_release_info gives an empty {}
-        # so get the info another way
-        if linux_info == {}:
-            linux_info = distro.os_release_info()
+    linux_info = distro.distro_release_info()
+    # On SUSE distro_release_info gives an empty {}
+    # so get the info another way
+    if linux_info == {}:
+        linux_info = distro.os_release_info()
 
-        version = 'UNK'
-        if linux_info.get('version_id'):
-            temp_version = linux_info.get('version_id').split('.')
-            if len(temp_version) > 1:
-                version = '{0}.{1}'.format(temp_version[0], temp_version[1])
-            else:
-                version = temp_version[0]
-
-        profile['distribution'] = linux_info.get('id')
-    else:
-        temp_info = platform.linux_distribution()
-        distribution = None
-        if temp_info[0] != '':
-            split_os = temp_info[0].split(' ')
-            distribution = split_os[0].lower()
-
-        profile['distribution'] = distribution
-        linux_info = {
-            'name': temp_info[0]
-        }
-
-        # Because of how platform works have to read /etc/lsb-release and get
-        # info from it as well to ensure we have the right info
-        if linux_info.get('name') == 'debian':
-            lsb_content = None
-            with open('/etc/lsb-release') as f:
-                lsb_content = f.read()
-
-            # Grab the data from lsb-release content
-            if lsb_content:
-                linux_info['version_id'] = (
-                    re.search('DISTRIB_RELEASE=(.+?)\n', lsb_content).group(1)
-                )
-                distribution = (
-                    re.search('DISTRIB_ID=(.+?)\n', lsb_content).group(1)
-                )
-
-            # Reset distribution from lsb-release file
-            if distribution:
-                profile['distribution'] = distribution.lower()
-
-            # Manually set the name
-            linux_info['name'] = 'Ubuntu'
+    version = 'UNK'
+    if linux_info.get('version_id'):
+        temp_version = linux_info.get('version_id').split('.')
+        if len(temp_version) > 1:
+            version = '{0}.{1}'.format(temp_version[0], temp_version[1])
         else:
-            linux_info['version_id'] = temp_info[1]
+            version = temp_version[0]
 
-        version = 'UNK'
-        if linux_info.get('version_id'):
-            temp_version = linux_info.get('version_id').split('.')
-            if len(temp_version) > 1:
-                version = '{0}.{1}'.format(temp_version[0], temp_version[1])
-            else:
-                version = temp_version[0]
-
+    profile['distribution'] = linux_info.get('id')
     profile['version'] = version
     profile['dist_name'] = linux_info.get('name')
 
@@ -353,7 +290,8 @@ def check_system_type(based_on, version, verbose):
     if defaults.OS_VALUES.get(based_on):
         supported['OS'] = 'PASS'
         for testver in defaults.OS_VALUES.get(based_on).get('versions'):
-            if all(a == b for a, b in zip(testver.split('.'), version.split('.'))):
+            if all(a == b for a, b in zip(testver.split('.'),
+                                          version.split('.'))):
                 supported['version'] = 'PASS'
                 break
 
