@@ -50,4 +50,7 @@ jobs:
         AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
         AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         AWS_DEFAULT_REGION: ${{secrets.AWS_DEFAULT_REGION}}
-      run: aws s3 cp ae_preflight-*-Linux-x86_64.sh s3://airgap.svc.anaconda.com/misc/ --acl public-read
+      run: |
+        for fn in ae_preflight-*-Linux-x86_64.sh; do
+          aws s3 cp $fn s3://airgap.svc.anaconda.com/misc/ --acl public-read
+        done
