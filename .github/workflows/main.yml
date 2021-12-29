@@ -33,6 +33,8 @@ jobs:
         sed -i.bak "s@version: .*@version: \"${cversion}\"@;s@- ae_preflight.*@- ae_preflight=${pversion}@" construct.yaml
         cat construct.yaml
         constructor
+        cp ae_preflight-*-Linux-x86_64.sh ae_preflight-latest-Linux-x86_64.sh
+        ls -l ae_preflight*.sh
     - name: Upload to anaconda.org
       if: github.event_name == 'push'
       env:
