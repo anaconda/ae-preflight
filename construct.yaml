@@ -1,8 +1,8 @@
 name: ae_preflight
-version: "0.1.8"
+version: "0.1.9"
 channels:
   - local
   - ae5-admin
   - defaults
 specs:
-  - ae_preflight
+  - ae_preflight=0.1.9
